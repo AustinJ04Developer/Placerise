@@ -1,0 +1,22 @@
+{
+  "name": "placerise",
+  "version": "1.0.0",
+  "description": "Placement Training Management & Progress Tracking System",
+  "private": true,
+  "scripts": {
+    "server:dev": "npm --prefix server run dev",
+    "server:build": "npm --prefix server run build",
+    "server:seed": "npm --prefix server run seed",
+    "client:dev": "npm --prefix client run dev",
+    "client:build": "npm --prefix client run build",
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install"
+  },
+  "keywords": [
+    "placement",
+    "training-cell",
+    "student-journey",
+    "progress-tracking"
+  ],
+  "author": "Placerise Team",
+  "license": "ISC"
+}
