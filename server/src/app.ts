@@ -16,17 +16,62 @@ import { reportsRoutes } from './modules/reports/reports.routes.js';
 import { adminRoutes } from './modules/admin/admin.routes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5000',
+  'http://localhost:3000',
+  'https://placerise.netlify.app',
+];
+
+if (process.env.CLIENT_URL) {
+  const cleanUrl = process.env.CLIENT_URL.trim().replace(/\/+$/, '');
+  if (!allowedOrigins.includes(cleanUrl)) {
+    allowedOrigins.push(cleanUrl);
+  }
+}
+
+export const isOriginAllowed = (origin?: string): boolean => {
+  if (!origin) return true;
+  const cleanOrigin = origin.trim().replace(/\/+$/, '');
+  if (allowedOrigins.includes(cleanOrigin)) return true;
+  if (
+    cleanOrigin.endsWith('.netlify.app') ||
+    cleanOrigin.endsWith('.onrender.com') ||
+    cleanOrigin.endsWith('.vercel.app') ||
+    cleanOrigin.includes('localhost') ||
+    cleanOrigin.includes('127.0.0.1')
+  ) {
+    return true;
+  }
+  return true;
+};
+
 export const createApp = (): Express => {
   const app = express();
 
   app.use(helmet());
   app.use(
     cors({
-      origin: process.env.CLIENT_URL || 'http://localhost:5173',
+      origin: (origin, callback) => {
+        callback(null, true);
+      },
       credentials: true,
     })
   );
   app.use(express.json());
+
+  // Root endpoint to prevent 404 on base server URL (e.g. Render dashboard link)
+  app.get('/', (req, res) => {
+    res.json({
+      status: 'online',
+      app: 'Placerise API Server',
+      message: 'Placerise Placement Training Management & Progress Tracking System API is running smoothly.',
+      endpoints: {
+        health: '/api/health',
+      },
+      timestamp: new Date().toISOString(),
+    });
+  });
 
   // Rate Limiting
   const globalLimiter = rateLimit({
@@ -71,6 +116,15 @@ export const createApp = (): Express => {
   app.use('/api/dashboard', dashboardRoutes);
   app.use('/api/reports', reportsRoutes);
   app.use('/api/admin', adminRoutes);
+
+  // Catch-all 404 handler for undefined routes
+  app.use('*', (req, res) => {
+    res.status(404).json({
+      success: false,
+      message: `Cannot ${req.method} ${req.originalUrl}. Route not found on Placerise API server.`,
+      health: '/api/health',
+    });
+  });
 
   // Global error handler
   app.use(errorHandler);

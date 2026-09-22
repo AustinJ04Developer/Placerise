@@ -18,7 +18,9 @@ async function startServer() {
 
   const io = new SocketIOServer(httpServer, {
     cors: {
-      origin: process.env.CLIENT_URL || 'http://localhost:5173',
+      origin: (origin, callback) => {
+        callback(null, true);
+      },
       credentials: true,
     },
   });
