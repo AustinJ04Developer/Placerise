@@ -9,7 +9,6 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (data: any) => Promise<void>;
-  switchRoleFast: (role: UserRole) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (updatedData: Partial<User>) => void;
   refreshUser: () => Promise<void>;
@@ -91,20 +90,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const switchRoleFast = async (targetRole: UserRole) => {
-    const demoAccounts: Record<UserRole, { email: string; pass: string }> = {
-      placement_officer: { email: 'officer@placerise.edu', pass: 'Admin@123' },
-      hod: { email: 'hod.cse@placerise.edu', pass: 'Admin@123' },
-      faculty: { email: 'faculty@placerise.edu', pass: 'Faculty@123' },
-      class_incharge: { email: 'incharge@placerise.edu', pass: 'Incharge@123' },
-      student: { email: 'student@placerise.edu', pass: 'Student@123' },
-    };
-
-    const acc = demoAccounts[targetRole];
-    if (acc) {
-      await login(acc.email, acc.pass);
-    }
-  };
 
   const logout = async () => {
     try {
@@ -128,7 +113,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         login,
         register,
-        switchRoleFast,
         logout,
         updateUser,
         refreshUser,
