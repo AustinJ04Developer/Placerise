@@ -1,142 +1,231 @@
 # Placerise: Placement Training Management & Progress Tracking System
 
-> **A Production-Grade, Student-History-Centric Placement Training Lifecycle Management Platform**
+> **A Production-Grade, Student-History-Centric Placement Training Lifecycle & Institutional Tracking Platform**
 
-Placerise is built for college Placement Training Cells to manage and monitor student training journeys across all academic years, batches, departments, and class sections. 
+Placerise is an institutional platform designed for College Placement Training Cells, Academic Departments, and Faculty. It manages, tracks, and monitors student training journeys across all academic years, batches, departments, and dynamic class sections.
 
-Unlike basic CRUD student-management apps, Placerise maintains an **immutable, multi-year historical training journey** for every student, decoupling their permanent identity (`registerNumber`) from ephemeral academic groupings (`ClassSection`).
+Unlike simple student directory tools, Placerise maintains an **immutable, multi-year historical training journey** for every student—decoupling their permanent institutional identity (`registerNumber`) from ephemeral academic groupings (`ClassSection`) as they progress from Year 1 to Year 4.
 
 ---
 
-## Key Highlights & Core Capabilities
+## 🌟 Key Highlights & Core Capabilities
 
-### 1. 4-Year Student Training Journey
-- A student in **Final Year &rarr; CSE &rarr; Section A** retains their complete training history starting from Year 1 to Year 4:
-  - **Year 1**: Aptitude Training, Communication, Coding Basics
-  - **Year 2**: Java Training, SQL Training, GD Training
-  - **Year 3**: Python Training, Mock Interview, Resume Training
-  - **Year 4**: Advanced Java Full Stack, Aptitude Revision, HR Training, Mock Interview
-- Shows per-program attendance rates, pass/fail status, test scores, and training gaps without overwriting past data when promoted.
+### 1. 4-Year Longitudinal Student Training Journey
+- Tracks a student's complete training history from Year 1 through Year 4 across multiple specialized domains:
+  - **Aptitude & Reasoning**: Quantitative, Logical, Verbal Drills
+  - **Programming & Coding**: Data Structures, Algorithms, Core Languages
+  - **Full Stack & Database**: Enterprise Tech Stacks, SQL, Web Architectures
+  - **Soft Skills & Communication**: Corporate Communication, Resume Preparation, Group Discussions
+  - **Mock & HR Interviews**: Technical and HR Mock Interview rounds
+- Records per-program attendance percentages, pass/fail status, test scores, and training gaps without overwriting past history upon academic promotion.
 
-### 2. 50-Student IV CSE A Class Matrix
-- Interactive **50 &times; N Class Training Matrix**:
-  - Rows: All 50 students (`23CS001` through `23CS050`).
-  - Columns: Assigned training programs spanning all 4 academic years.
-  - Cells: Real-time visual status badges (`✓ Completed`, `✗ Gap/Low Attendance`, `⏳ Scheduled`).
-  - Summary metrics: Program completion ratio, average attendance %, and gap highlights (&lt; 75%).
-  - One-click CSV export of the entire 50-student matrix.
+### 2. Dynamic Class Training Matrix
+- **Flexible Class-Level Matrix**: Dynamically adapts to any class size and section roster (not fixed to hardcoded numbers).
+  - **Rows**: Real-time enrolled student rosters for any selected department and section.
+  - **Columns**: Assigned training programs across academic years.
+  - **Status Badges**: Real-time visual compliance indicators (`✓ Completed`, `✗ Gap / Low Attendance`, `⏳ Scheduled`).
+  - **Quick Filters**: Filter by all students, students with training gaps (&lt; 75% attendance), or 100% completed.
+  - **One-Click CSV Export**: Instant export of class training records for institutional accreditation and audits.
 
 ### 3. Reverse Training Query ("Who has NOT attended this training?")
-- Answer institutional queries instantly:
-  - Total Assigned vs Attended vs Absent vs Pending.
-  - Drill down into the absent student roster with contact details, roll numbers, and one-click CSV export for remedial scheduling.
+- Answer institutional training queries instantly:
+  - Instant calculations: **Total Assigned vs Attended vs Absent vs Pending**.
+  - Drill down into non-attendees with contact numbers, roll numbers, and one-click CSV export for remedial scheduling.
 
-### 4. Bulk Operations & Governance
-- **Bulk Attendance Sheet**: Matrix roster with "Mark All Present", quick status toggles (`Present`, `Absent`, `Late`), remarks, and automatic threshold calculations.
-- **Bulk Assessment Grading**: Reactive score entry calculating percentage, grades (`A+`, `A`, `B`, `C`, `F`), and pass/fail status.
-- **Governance & Approvals**: Faculty attendance corrections and grade modifications submit approval requests to the Placement Officer, preserving original vs proposed values.
-- **Append-Only Audit Trail**: Cryptographically logs every authentication, attendance update, assessment change, and approval.
+### 4. Bulk Operations, Governance & Audit Trail
+- **Bulk Session Attendance**: High-density matrix sheet with "Mark All Present", quick status toggles (`Present`, `Absent`, `Late`), session remarks, and automated attendance rate calculation.
+- **Bulk Assessment Grading**: Reactive score entry calculating percentage, grades (`A+`, `A`, `B`, `C`, `F`), and pass/fail thresholds.
+- **Governance & Approval Workflows**: Faculty attendance corrections and grade modifications require Placement Officer approval, preserving original vs proposed values.
+- **Append-Only Audit Trail**: Cryptographically logs every authentication, record update, approval request, and operational event.
 
-### 5. Multi-Device Responsive UI
-- Fully responsive across mobile, tablet, and desktop screens.
-- Mobile off-canvas navigation drawer with backdrop overlay.
-- Adaptive dual-mode student roster: high-density table on desktop/tablet & swipeable card list on mobile.
-
----
-
-## Demo Accounts & Role-Based Access Control
-
-The database is pre-seeded with 50 students in `IV CSE A` and verified credentials for all 4 roles:
-
-| Role | Email | Password | Access Scope |
-| :--- | :--- | :--- | :--- |
-| **Placement Officer** | `officer@placerise.edu` | `Admin@123` | Global institution management, program builder, approvals queue, audit trail, reports. |
-| **Faculty / Trainer** | `faculty@placerise.edu` | `Faculty@123` | Assigned programs, session creation, bulk attendance marking, assessment grading. |
-| **Class Incharge** | `incharge@placerise.edu` | `Incharge@123` | Scoped to **IV CSE A** (50 students), matrix view, attendance verification, change requests. |
-| **Student (Student 01)** | `student@placerise.edu` | `Student@123` | Scoped strictly to Aarav Sharma (`23CS001`), 4-year journey, attendance %, placement profile. |
+### 5. Role-Based Real-Time Dashboard
+- Dynamic KPI metrics and domain distribution charts driven by live database queries:
+  - **Historical Program Attendance Bar Chart**: Dynamic benchmark comparisons (&ge; 75%).
+  - **Training Domain Mix Pie Chart**: Live distribution across configured training tracks.
+  - Responsive empty states when newly initialized or awaiting session data.
 
 ---
 
-## Tech Stack
+## 👥 Role-Based Access Control (RBAC)
 
-- **Frontend**:
-  - React 18, TypeScript, Tailwind CSS
-  - React Router v6, TanStack Query, Axios
-  - Recharts (visual KPI distributions & attendance charts)
-  - Lucide React (modern enterprise icon system)
-  - Socket.IO client (real-time notification architecture)
-- **Backend**:
-  - Node.js, Express.js, TypeScript
-  - Mongoose (MongoDB ODM with optimized indexes)
-  - JWT Access Token + Refresh Token Rotation
-  - bcrypt password hashing
-  - Structured modular architecture (Controller &rarr; Service &rarr; Model)
-  - Immutable Audit Logger
-- **Database**:
-  - MongoDB running on `mongodb://127.0.0.1:27017/placerise`
+Placerise implements strict permission boundaries across 5 institutional roles:
+
+| Role | Target Users | Permissions & Access Scope |
+| :--- | :--- | :--- |
+| **Placement Officer** | Director & Placement Team | Institutional oversight, program creator, approval decisions, audit trail, reports, and system settings. |
+| **Head of Department (HOD)** | Department Heads | Department-scoped analytics, class rosters, departmental matrix, training oversight, and report exports. |
+| **Faculty / Trainer** | Subject Faculty & Trainers | Assigned programs, session scheduling, bulk attendance marking, assessment evaluations, and approval requests. |
+| **Class Incharge** | Class Advisors / Mentors | Section-scoped student roster, section training matrix, absentee monitoring, and student gap tracking. |
+| **Student** | Enrolled Students | Self-service portal: personal 4-year training journey, attendance compliance, assessment feedback, and placement profile. |
 
 ---
 
-## Architecture & Data Model
+## 🛠️ Technology Stack
 
-```text
-Student (Permanent: 23CS001)
-   │
-   ├── StudentAcademicHistory (Snapshots of Year 1, 2, 3, 4)
-   │     ├── Year 1 (2023–24) &rarr; I CSE A (Roll 01)
-   │     ├── Year 2 (2024–25) &rarr; II CSE A (Roll 01)
-   │     ├── Year 3 (2025–26) &rarr; III CSE A (Roll 01)
-   │     └── Year 4 (2026–27) &rarr; IV CSE A (Roll 01)
-   │
-   ├── TrainingEnrollment (Linked per program & year of study)
-   ├── AttendanceRecord (Session-level records)
-   ├── AssessmentResult (Grades and marks)
-   └── PlacementProfile (CGPA, backlogs, skills, readiness score)
-```
+### Frontend (`client/`)
+- **Framework & Language**: React 18, TypeScript, Vite
+- **Styling & Icons**: Tailwind CSS, Lucide React
+- **Routing & State**: React Router v6, Axios, Context API (`AuthContext`, `ThemeContext`)
+- **Visualizations**: Recharts (dynamic bar charts & pie charts)
+- **Deployment Target**: Netlify (SPA configured with `_redirects` & `netlify.toml`)
+
+### Backend (`server/`)
+- **Runtime & Framework**: Node.js, Express, TypeScript (`tsx`)
+- **Database ODM**: Mongoose 8 (MongoDB Atlas)
+- **Security & Auth**: JWT (Access + Refresh Token rotation), bcryptjs, Helmet, Rate Limiting
+- **Validation**: Zod schema validation
+- **Architecture**: Modular structure (Controller &rarr; Service &rarr; Model)
 
 ---
 
-## Project Structure
+## 📁 Repository Structure
 
 ```text
 Placerise/
-├── server/
+├── client/                     # Frontend Single Page Application (React + Vite)
+│   ├── public/                 # Static assets & Netlify SPA _redirects
 │   ├── src/
-│   │   ├── config/            # Database connection & constants
-│   │   ├── models/            # 18 Mongoose models (Student, History, Training, etc.)
-│   │   ├── middleware/        # JWT auth, RBAC, audit logger, error handler, Zod
-│   │   ├── modules/           # auth, academics, students, training, attendance, etc.
-│   │   ├── seed/              # 50-student IV CSE A 4-year seed script
-│   │   ├── app.ts             # Express setup
-│   │   └── server.ts          # HTTP server entrypoint
+│   │   ├── app/context/        # Auth & Theme context providers
+│   │   ├── features/           # Dashboard, Academics, Training, Matrix, Approvals, Reports
+│   │   ├── layouts/            # Responsive AppLayout, Sidebar drawer, Navbar
+│   │   ├── services/           # Configured Axios client with JWT interceptors
+│   │   ├── types/              # TypeScript domain types & interfaces
+│   │   └── vite-env.d.ts       # Typed Vite environment variables
+│   ├── .env                    # Client environment configuration
+│   ├── netlify.toml            # Netlify build & SPA routing configuration
 │   └── package.json
-└── client/
-    ├── src/
-    │   ├── app/               # AuthContext & ThemeContext
-    │   ├── layouts/           # AppLayout, Sidebar (Mobile Drawer), Navbar
-    │   ├── features/          # Dashboard, Students, Matrix, Training, Reverse Query, etc.
-    │   ├── services/          # Typed Axios client
-    │   └── types/             # TypeScript domain definitions
-    └── package.json
+│
+├── server/                     # Backend API Server (Node.js + Express + Mongoose)
+│   ├── src/
+│   │   ├── config/             # MongoDB connection, RBAC roles & constants
+│   │   ├── middleware/         # Auth verification, role checks, audit logger, error handling
+│   │   ├── models/             # 19 Mongoose models (User, Student, TrainingProgram, etc.)
+│   │   ├── modules/            # Domain modules (auth, dashboard, training, attendance, etc.)
+│   │   └── seed/               # Maintenance scripts (cleanupData, migrateLocalToCloud, statusCheck)
+│   ├── .env                    # Server environment variables & database connection
+│   └── package.json
+│
+└── README.md                   # Project documentation
 ```
 
 ---
 
-## Running Locally
+## ⚙️ Environment Configuration
 
-### 1. Seed the Database (50 Students + 4-Year Journey)
-```bash
-npm --prefix server run seed
+### Server Configuration (`server/.env`)
+Create `server/.env` with the following variables:
+
+```env
+PORT=5000
+NODE_ENV=development
+MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/?retryWrites=true&w=majority
+
+# JWT Authentication Secrets
+JWT_SECRET=your_jwt_access_secret_key
+JWT_REFRESH_SECRET=your_jwt_refresh_secret_key
+JWT_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=7d
+
+# Allowed Frontend Origins (for CORS)
+CLIENT_URL=https://placerise.netlify.app
+
+# Staff Role Registration Authorization Keys
+AUTH_KEY_PLACEMENT_OFFICER=OFFICER@PLACERISE2026
+AUTH_KEY_CLASS_INCHARGE=INCHARGE@PLACERISE2026
+AUTH_KEY_FACULTY=FACULTY@PLACERISE2026
 ```
 
-### 2. Start the Backend (Port 5000)
-```bash
-npm --prefix server run dev
+### Client Configuration (`client/.env`)
+Create `client/.env` with the following variables:
+
+```env
+# API Base URL (proxied locally through /api in Vite dev server)
+VITE_API_BASE_URL=/api
+
+# Backend Host URL
+VITE_API_SERVER_URL=http://localhost:5000
+
+# Application Branding
+VITE_APP_NAME=Placerise
 ```
 
-### 3. Start the Frontend (Port 5173)
+---
+
+## 🚀 Running Locally
+
+### 1. Prerequisites
+- **Node.js**: v18.x or later
+- **MongoDB**: MongoDB Atlas connection string or local MongoDB instance
+
+### 2. Install Dependencies
+
+In the root directory, install dependencies for both client and server:
 ```bash
-npm --prefix client run dev
+# Install server dependencies
+cd server
+npm install
+
+# Install client dependencies
+cd ../client
+npm install
 ```
 
-Navigate to `http://localhost:5173` in your browser and log in with any demo role.
+### 3. Start Development Servers
+
+Run the backend and frontend development servers in separate terminals:
+
+**Terminal 1 (Backend API):**
+```bash
+cd server
+npm run dev
+# Server running at http://localhost:5000
+```
+
+**Terminal 2 (Frontend Client):**
+```bash
+cd client
+npm run dev
+# Client running at http://localhost:5173
+```
+
+---
+
+## 🛠️ Database & Maintenance Utility Scripts
+
+The server provides built-in utility scripts for database management:
+
+| Script | Command | Purpose |
+| :--- | :--- | :--- |
+| **Status Check** | `npx tsx src/seed/statusCheck.ts` | Inspects document counts across all collections and lists active users in the database. |
+| **Data Cleanup** | `npm run cleanup` | Safely removes sample data and demo records while preserving production administrative accounts. |
+| **Cloud Migration** | `npm run migrate:cloud` | Migrates institutional structure (`departments`, `academicyears`, `batches`, `classsections`, `trainingcategories`, `systemsettings`) from local MongoDB to MongoDB Atlas. |
+
+---
+
+## 🌐 Production Deployment
+
+### Frontend (Netlify)
+1. Build the production client bundle:
+   ```bash
+   cd client
+   npm run build
+   ```
+2. The output directory is `client/dist`.
+3. **Manual Upload**: Drag and drop `client/dist` directly into [Netlify Drop](https://app.netlify.com/drop).
+4. **Git CI/CD**:
+   - **Base directory**: `client`
+   - **Build command**: `npm run build`
+   - **Publish directory**: `client/dist`
+   - Set environment variable: `VITE_API_BASE_URL=https://your-backend-domain.com/api`
+
+### Backend (Render / Railway / VPS)
+1. Deploy the `server` directory to a Node.js hosting platform.
+2. Set `NODE_ENV=production` and configure all environment variables from `server/.env`.
+3. Start command: `npm start` (or `node dist/server.js` after `npm run build`).
+4. Update `CLIENT_URL` to your live frontend domain (`https://placerise.netlify.app`).
+
+---
+
+## 📄 License
+
+This project is proprietary institutional software developed for placement training cells and academic institutions.
