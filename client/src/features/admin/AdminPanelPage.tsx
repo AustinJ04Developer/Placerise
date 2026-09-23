@@ -222,20 +222,18 @@ export const AdminPanelPage: React.FC = () => {
   return (
     <div className="space-y-6 pb-12">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <div className="flex items-center space-x-2.5">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-brand-500/20">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                Institutional Administration Hub
-              </h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Centralized management of authorization keys, higher institutional parameters, and staff governance
-              </p>
-            </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        <div className="flex items-start sm:items-center space-x-3 min-w-0">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-brand-500/20 shrink-0 mt-0.5 sm:mt-0">
+            <ShieldCheck className="w-5 h-5" />
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-snug">
+              Institutional Administration Hub
+            </h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2 sm:line-clamp-none">
+              Centralized management of authorization keys, higher institutional parameters, and staff governance
+            </p>
           </div>
         </div>
 
@@ -243,7 +241,7 @@ export const AdminPanelPage: React.FC = () => {
         <button
           onClick={loadAllData}
           disabled={actionLoading}
-          className="inline-flex items-center space-x-1.5 px-3 py-2 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-colors shadow-sm"
+          className="inline-flex items-center justify-center space-x-2 px-3.5 py-2 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-colors shadow-xs w-full sm:w-auto shrink-0 self-stretch sm:self-auto active:scale-[0.98]"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${actionLoading ? 'animate-spin text-brand-500' : ''}`} />
           <span>Refresh Data</span>
@@ -268,31 +266,33 @@ export const AdminPanelPage: React.FC = () => {
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="flex border-b border-slate-200 dark:border-slate-800 space-x-2">
-        {[
-          { id: 'keys', label: 'Role Authorization Keys', icon: KeyRound },
-          { id: 'institution', label: 'Higher Institutional Details', icon: School },
-          { id: 'users', label: 'Staff & User Governance', icon: Users },
-          { id: 'departments', label: 'Department & Program Matrix', icon: Building },
-        ].map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center space-x-2 px-4 py-3 text-xs font-bold border-b-2 transition-all ${
-                isActive
-                  ? 'border-brand-500 text-brand-600 dark:text-brand-400'
-                  : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
+      {/* Tabs - Horizontally scrollable on mobile without wrapping or page blowout */}
+      <div className="border-b border-slate-200 dark:border-slate-800 -mx-3 px-3 sm:mx-0 sm:px-0">
+        <div className="flex space-x-1 sm:space-x-2 overflow-x-auto no-scrollbar scroll-smooth pb-px">
+          {[
+            { id: 'keys', label: 'Role Authorization Keys', icon: KeyRound },
+            { id: 'institution', label: 'Higher Institutional Details', icon: School },
+            { id: 'users', label: 'Staff & User Governance', icon: Users },
+            { id: 'departments', label: 'Department & Program Matrix', icon: Building },
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex items-center space-x-2 px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs font-bold border-b-2 transition-all shrink-0 whitespace-nowrap ${
+                  isActive
+                    ? 'border-brand-500 text-brand-600 dark:text-brand-400 bg-brand-50/50 dark:bg-brand-950/20 rounded-t-lg'
+                    : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/40 rounded-t-lg'
+                }`}
+              >
+                <Icon className="w-4 h-4 shrink-0" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* TAB 1: ROLE AUTHORIZATION KEYS */}
@@ -312,22 +312,22 @@ export const AdminPanelPage: React.FC = () => {
           </div>
 
           <form onSubmit={handleSaveKeys} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
               {/* Placement Officer Key */}
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
+                <div className="flex items-start sm:items-center justify-between gap-2">
+                  <div className="flex items-center space-x-2 min-w-0">
+                    <div className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
                       <Lock className="w-3.5 h-3.5" />
                     </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-900 dark:text-white">
+                    <div className="min-w-0">
+                      <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate">
                         Placement Officer
                       </h4>
-                      <p className="text-[10px] text-slate-400">Campus-Wide Cell Authority</p>
+                      <p className="text-[10px] text-slate-400 truncate">Campus-Wide Cell Authority</p>
                     </div>
                   </div>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full font-mono font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full font-mono font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 shrink-0">
                     Highest Tier
                   </span>
                 </div>
@@ -337,20 +337,22 @@ export const AdminPanelPage: React.FC = () => {
                     type={visibleKeys.officer ? 'text' : 'password'}
                     value={keys.placementOfficerKey}
                     onChange={(e) => setKeys({ ...keys, placementOfficerKey: e.target.value })}
-                    className="w-full pl-3 pr-16 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-full pl-3 pr-20 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center space-x-1 text-slate-400">
+                  <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center space-x-0.5 text-slate-400">
                     <button
                       type="button"
                       onClick={() => toggleVisibility('officer')}
-                      className="p-1 hover:text-slate-600 dark:hover:text-slate-200"
+                      className="p-1.5 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors"
+                      title={visibleKeys.officer ? 'Hide key' : 'Show key'}
                     >
                       {visibleKeys.officer ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                     </button>
                     <button
                       type="button"
                       onClick={() => handleCopyKey(keys.placementOfficerKey, 'officer')}
-                      className="p-1 hover:text-slate-600 dark:hover:text-slate-200"
+                      className="p-1.5 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors"
+                      title="Copy key"
                     >
                       {copiedKey === 'officer' ? (
                         <Check className="w-3.5 h-3.5 text-emerald-500" />
@@ -362,12 +364,12 @@ export const AdminPanelPage: React.FC = () => {
                 </div>
 
                 <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-400">
-                  <span>Updated: {keys.lastUpdatedOfficer ? new Date(keys.lastUpdatedOfficer).toLocaleDateString() : 'Default'}</span>
+                  <span className="truncate pr-1">Updated: {keys.lastUpdatedOfficer ? new Date(keys.lastUpdatedOfficer).toLocaleDateString() : 'Default'}</span>
                   <button
                     type="button"
                     disabled={actionLoading}
                     onClick={() => handleRotateKey('placement_officer')}
-                    className="text-brand-600 dark:text-brand-400 hover:underline font-semibold inline-flex items-center space-x-1"
+                    className="text-brand-600 dark:text-brand-400 hover:underline font-semibold inline-flex items-center space-x-1 shrink-0 px-1.5 py-0.5 rounded hover:bg-brand-50 dark:hover:bg-brand-950/40"
                   >
                     <RefreshCw className="w-2.5 h-2.5" />
                     <span>Rotate</span>
@@ -376,20 +378,20 @@ export const AdminPanelPage: React.FC = () => {
               </div>
 
               {/* Head of Department (HOD) Key */}
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-7 h-7 rounded-lg bg-cyan-100 dark:bg-cyan-950/50 text-cyan-600 dark:text-cyan-400 flex items-center justify-center">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
+                <div className="flex items-start sm:items-center justify-between gap-2">
+                  <div className="flex items-center space-x-2 min-w-0">
+                    <div className="w-7 h-7 rounded-lg bg-cyan-100 dark:bg-cyan-950/50 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shrink-0">
                       <Building className="w-3.5 h-3.5" />
                     </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                        Head of Department (HOD)
+                    <div className="min-w-0">
+                      <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                        Head of Dept (HOD)
                       </h4>
-                      <p className="text-[10px] text-slate-400">Department Oversight</p>
+                      <p className="text-[10px] text-slate-400 truncate">Department Oversight</p>
                     </div>
                   </div>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full font-mono font-bold bg-cyan-50 text-cyan-700 dark:bg-cyan-950/60 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full font-mono font-bold bg-cyan-50 text-cyan-700 dark:bg-cyan-950/60 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800 shrink-0">
                     Dept Head
                   </span>
                 </div>
@@ -399,20 +401,22 @@ export const AdminPanelPage: React.FC = () => {
                     type={visibleKeys.hod ? 'text' : 'password'}
                     value={keys.hodKey}
                     onChange={(e) => setKeys({ ...keys, hodKey: e.target.value })}
-                    className="w-full pl-3 pr-16 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-full pl-3 pr-20 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center space-x-1 text-slate-400">
+                  <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center space-x-0.5 text-slate-400">
                     <button
                       type="button"
                       onClick={() => toggleVisibility('hod')}
-                      className="p-1 hover:text-slate-600 dark:hover:text-slate-200"
+                      className="p-1.5 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors"
+                      title={visibleKeys.hod ? 'Hide key' : 'Show key'}
                     >
                       {visibleKeys.hod ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                     </button>
                     <button
                       type="button"
                       onClick={() => handleCopyKey(keys.hodKey, 'hod')}
-                      className="p-1 hover:text-slate-600 dark:hover:text-slate-200"
+                      className="p-1.5 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors"
+                      title="Copy key"
                     >
                       {copiedKey === 'hod' ? (
                         <Check className="w-3.5 h-3.5 text-emerald-500" />
@@ -424,12 +428,12 @@ export const AdminPanelPage: React.FC = () => {
                 </div>
 
                 <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-400">
-                  <span>Updated: {keys.lastUpdatedHod ? new Date(keys.lastUpdatedHod).toLocaleDateString() : 'Default'}</span>
+                  <span className="truncate pr-1">Updated: {keys.lastUpdatedHod ? new Date(keys.lastUpdatedHod).toLocaleDateString() : 'Default'}</span>
                   <button
                     type="button"
                     disabled={actionLoading}
                     onClick={() => handleRotateKey('hod')}
-                    className="text-brand-600 dark:text-brand-400 hover:underline font-semibold inline-flex items-center space-x-1"
+                    className="text-brand-600 dark:text-brand-400 hover:underline font-semibold inline-flex items-center space-x-1 shrink-0 px-1.5 py-0.5 rounded hover:bg-brand-50 dark:hover:bg-brand-950/40"
                   >
                     <RefreshCw className="w-2.5 h-2.5" />
                     <span>Rotate</span>
@@ -438,20 +442,20 @@ export const AdminPanelPage: React.FC = () => {
               </div>
 
               {/* Class Incharge Key */}
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
+                <div className="flex items-start sm:items-center justify-between gap-2">
+                  <div className="flex items-center space-x-2 min-w-0">
+                    <div className="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
                       <School className="w-3.5 h-3.5" />
                     </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                        Class Incharge Key
+                    <div className="min-w-0">
+                      <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                        Class Incharge
                       </h4>
-                      <p className="text-[10px] text-slate-400">Section Matrix Oversight</p>
+                      <p className="text-[10px] text-slate-400 truncate">Section Matrix Oversight</p>
                     </div>
                   </div>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full font-mono font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full font-mono font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shrink-0">
                     Section Tier
                   </span>
                 </div>
@@ -461,20 +465,22 @@ export const AdminPanelPage: React.FC = () => {
                     type={visibleKeys.incharge ? 'text' : 'password'}
                     value={keys.classInchargeKey}
                     onChange={(e) => setKeys({ ...keys, classInchargeKey: e.target.value })}
-                    className="w-full pl-3 pr-16 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-full pl-3 pr-20 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center space-x-1 text-slate-400">
+                  <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center space-x-0.5 text-slate-400">
                     <button
                       type="button"
                       onClick={() => toggleVisibility('incharge')}
-                      className="p-1 hover:text-slate-600 dark:hover:text-slate-200"
+                      className="p-1.5 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors"
+                      title={visibleKeys.incharge ? 'Hide key' : 'Show key'}
                     >
                       {visibleKeys.incharge ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                     </button>
                     <button
                       type="button"
                       onClick={() => handleCopyKey(keys.classInchargeKey, 'incharge')}
-                      className="p-1 hover:text-slate-600 dark:hover:text-slate-200"
+                      className="p-1.5 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors"
+                      title="Copy key"
                     >
                       {copiedKey === 'incharge' ? (
                         <Check className="w-3.5 h-3.5 text-emerald-500" />
@@ -486,12 +492,12 @@ export const AdminPanelPage: React.FC = () => {
                 </div>
 
                 <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-400">
-                  <span>Updated: {keys.lastUpdatedIncharge ? new Date(keys.lastUpdatedIncharge).toLocaleDateString() : 'Default'}</span>
+                  <span className="truncate pr-1">Updated: {keys.lastUpdatedIncharge ? new Date(keys.lastUpdatedIncharge).toLocaleDateString() : 'Default'}</span>
                   <button
                     type="button"
                     disabled={actionLoading}
                     onClick={() => handleRotateKey('class_incharge')}
-                    className="text-brand-600 dark:text-brand-400 hover:underline font-semibold inline-flex items-center space-x-1"
+                    className="text-brand-600 dark:text-brand-400 hover:underline font-semibold inline-flex items-center space-x-1 shrink-0 px-1.5 py-0.5 rounded hover:bg-brand-50 dark:hover:bg-brand-950/40"
                   >
                     <RefreshCw className="w-2.5 h-2.5" />
                     <span>Rotate</span>
@@ -500,20 +506,20 @@ export const AdminPanelPage: React.FC = () => {
               </div>
 
               {/* Faculty Trainer Key */}
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
+                <div className="flex items-start sm:items-center justify-between gap-2">
+                  <div className="flex items-center space-x-2 min-w-0">
+                    <div className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
                       <KeyRound className="w-3.5 h-3.5" />
                     </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                        Faculty Trainer Key
+                    <div className="min-w-0">
+                      <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                        Faculty Trainer
                       </h4>
-                      <p className="text-[10px] text-slate-400">Instruction & Attendance</p>
+                      <p className="text-[10px] text-slate-400 truncate">Instruction & Attendance</p>
                     </div>
                   </div>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full font-mono font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full font-mono font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shrink-0">
                     Trainer Tier
                   </span>
                 </div>
@@ -523,20 +529,22 @@ export const AdminPanelPage: React.FC = () => {
                     type={visibleKeys.faculty ? 'text' : 'password'}
                     value={keys.facultyKey}
                     onChange={(e) => setKeys({ ...keys, facultyKey: e.target.value })}
-                    className="w-full pl-3 pr-16 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-full pl-3 pr-20 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center space-x-1 text-slate-400">
+                  <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center space-x-0.5 text-slate-400">
                     <button
                       type="button"
                       onClick={() => toggleVisibility('faculty')}
-                      className="p-1 hover:text-slate-600 dark:hover:text-slate-200"
+                      className="p-1.5 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors"
+                      title={visibleKeys.faculty ? 'Hide key' : 'Show key'}
                     >
                       {visibleKeys.faculty ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                     </button>
                     <button
                       type="button"
                       onClick={() => handleCopyKey(keys.facultyKey, 'faculty')}
-                      className="p-1 hover:text-slate-600 dark:hover:text-slate-200"
+                      className="p-1.5 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors"
+                      title="Copy key"
                     >
                       {copiedKey === 'faculty' ? (
                         <Check className="w-3.5 h-3.5 text-emerald-500" />
@@ -548,12 +556,12 @@ export const AdminPanelPage: React.FC = () => {
                 </div>
 
                 <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-400">
-                  <span>Updated: {keys.lastUpdatedFaculty ? new Date(keys.lastUpdatedFaculty).toLocaleDateString() : 'Default'}</span>
+                  <span className="truncate pr-1">Updated: {keys.lastUpdatedFaculty ? new Date(keys.lastUpdatedFaculty).toLocaleDateString() : 'Default'}</span>
                   <button
                     type="button"
                     disabled={actionLoading}
                     onClick={() => handleRotateKey('faculty')}
-                    className="text-brand-600 dark:text-brand-400 hover:underline font-semibold inline-flex items-center space-x-1"
+                    className="text-brand-600 dark:text-brand-400 hover:underline font-semibold inline-flex items-center space-x-1 shrink-0 px-1.5 py-0.5 rounded hover:bg-brand-50 dark:hover:bg-brand-950/40"
                   >
                     <RefreshCw className="w-2.5 h-2.5" />
                     <span>Rotate</span>
@@ -562,11 +570,11 @@ export const AdminPanelPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-end pt-1">
               <button
                 type="submit"
                 disabled={actionLoading}
-                className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-lg shadow-brand-500/25 transition-all"
+                className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white text-xs font-bold shadow-lg shadow-brand-500/25 transition-all"
               >
                 <Save className="w-4 h-4" />
                 <span>Save All Authorization Keys</span>
@@ -579,12 +587,12 @@ export const AdminPanelPage: React.FC = () => {
       {/* TAB 2: HIGHER INSTITUTIONAL DETAILS */}
       {activeTab === 'institution' && (
         <form onSubmit={handleSaveInstitution} className="space-y-6">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-5">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xs space-y-5">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3">
               College & Placement Cell Profile
             </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Institution Name
@@ -664,7 +672,7 @@ export const AdminPanelPage: React.FC = () => {
               Institutional Placement Benchmarks
             </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Minimum Training Attendance Requirement (%)
@@ -696,11 +704,11 @@ export const AdminPanelPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex justify-end pt-4">
+            <div className="flex justify-end pt-3">
               <button
                 type="submit"
                 disabled={actionLoading}
-                className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-lg shadow-brand-500/25 transition-all"
+                className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white text-xs font-bold shadow-lg shadow-brand-500/25 transition-all"
               >
                 <Save className="w-4 h-4" />
                 <span>Save Institutional Details</span>
@@ -714,35 +722,35 @@ export const AdminPanelPage: React.FC = () => {
       {activeTab === 'users' && (
         <div className="space-y-6">
           {/* Summary KPIs */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
-              <div className="text-xs font-bold text-slate-500 dark:text-slate-400">Officers</div>
-              <div className="text-xl font-black text-indigo-600 dark:text-indigo-400 mt-1">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
+            <div className="p-3 sm:p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs">
+              <div className="text-[11px] sm:text-xs font-bold text-slate-500 dark:text-slate-400">Officers</div>
+              <div className="text-lg sm:text-xl font-black text-indigo-600 dark:text-indigo-400 mt-1">
                 {userCounts.officer || 0}
               </div>
             </div>
-            <div className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
-              <div className="text-xs font-bold text-slate-500 dark:text-slate-400">Incharges / HODs</div>
-              <div className="text-xl font-black text-cyan-600 dark:text-cyan-400 mt-1">
+            <div className="p-3 sm:p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs">
+              <div className="text-[11px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 truncate">Incharges / HODs</div>
+              <div className="text-lg sm:text-xl font-black text-cyan-600 dark:text-cyan-400 mt-1">
                 {userCounts.classIncharge || 0}
               </div>
             </div>
-            <div className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
-              <div className="text-xs font-bold text-slate-500 dark:text-slate-400">Faculty Trainers</div>
-              <div className="text-xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
+            <div className="p-3 sm:p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs">
+              <div className="text-[11px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 truncate">Faculty Trainers</div>
+              <div className="text-lg sm:text-xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
                 {userCounts.faculty || 0}
               </div>
             </div>
-            <div className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
-              <div className="text-xs font-bold text-slate-500 dark:text-slate-400">Total Students</div>
-              <div className="text-xl font-black text-brand-600 dark:text-brand-400 mt-1">
+            <div className="p-3 sm:p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs">
+              <div className="text-[11px] sm:text-xs font-bold text-slate-500 dark:text-slate-400">Total Students</div>
+              <div className="text-lg sm:text-xl font-black text-brand-600 dark:text-brand-400 mt-1">
                 {userCounts.student || 0}
               </div>
             </div>
           </div>
 
           {/* Search & Filters */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 bg-white dark:bg-slate-900 p-2.5 sm:p-3 rounded-2xl border border-slate-200 dark:border-slate-800">
             <div className="relative w-full sm:w-72">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
@@ -750,7 +758,7 @@ export const AdminPanelPage: React.FC = () => {
                 placeholder="Search staff by name or email..."
                 value={userSearch}
                 onChange={(e) => setUserSearch(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white"
+                className="w-full pl-9 pr-3 py-2 sm:py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white"
               />
             </div>
 
@@ -758,7 +766,7 @@ export const AdminPanelPage: React.FC = () => {
               <select
                 value={userFilter}
                 onChange={(e) => setUserFilter(e.target.value)}
-                className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white font-medium"
+                className="w-full sm:w-auto px-3 py-2 sm:py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white font-medium"
               >
                 <option value="">All Roles</option>
                 <option value="placement_officer">Placement Officer</option>
@@ -769,82 +777,88 @@ export const AdminPanelPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Table */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 uppercase text-[10px] font-bold border-b border-slate-200 dark:border-slate-800">
-                <tr>
-                  <th className="px-4 py-3">User</th>
-                  <th className="px-4 py-3">Role</th>
-                  <th className="px-4 py-3">Department</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Last Login</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
-                {users.map((u) => (
-                  <tr key={u._id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
-                    <td className="px-4 py-3">
-                      <div className="font-bold text-slate-900 dark:text-white">{u.name}</div>
-                      <div className="text-[11px] text-slate-400">{u.email}</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                          u.role === 'placement_officer'
-                            ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300'
-                            : u.role === 'class_incharge'
-                            ? 'bg-cyan-100 text-cyan-700 dark:bg-cyan-950/60 dark:text-cyan-300'
-                            : u.role === 'faculty'
-                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
-                            : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
-                        }`}
-                      >
-                        {u.role.replace('_', ' ')}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
-                      {u.role === 'placement_officer' ? (
-                        <span className="text-brand-600 dark:text-brand-400 font-semibold">Campus-Wide</span>
-                      ) : (
-                        u.departmentId?.code || 'N/A'
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex items-center space-x-1 text-[10px] font-bold ${
-                          u.isActive
-                            ? 'text-emerald-600 dark:text-emerald-400'
-                            : 'text-red-500 dark:text-red-400'
-                        }`}
-                      >
-                        <span className={`w-1.5 h-1.5 rounded-full ${u.isActive ? 'bg-emerald-500' : 'bg-red-500'}`} />
-                        <span>{u.isActive ? 'Active' : 'Suspended'}</span>
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-[11px] text-slate-400">
-                      {u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString() : 'Never'}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      {u.role !== 'placement_officer' && (
-                        <button
-                          type="button"
-                          onClick={() => handleToggleUserStatus(u._id, u.isActive)}
-                          className={`px-2.5 py-1 text-[10px] font-bold rounded-lg border transition-all ${
-                            u.isActive
-                              ? 'border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/60 dark:text-red-400'
-                              : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50 dark:border-emerald-900/60 dark:text-emerald-400'
+          {/* Table Container with horizontal scroll */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
+            <div className="sm:hidden px-3.5 py-1.5 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800 text-[10px] text-slate-400 flex items-center justify-between">
+              <span>Swipe horizontally to view all staff columns</span>
+              <span className="font-mono text-slate-400">⇄</span>
+            </div>
+            <div className="w-full overflow-x-auto">
+              <table className="w-full text-left text-xs min-w-[620px]">
+                <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 uppercase text-[10px] font-bold border-b border-slate-200 dark:border-slate-800">
+                  <tr>
+                    <th className="px-4 py-3">User</th>
+                    <th className="px-4 py-3">Role</th>
+                    <th className="px-4 py-3">Department</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">Last Login</th>
+                    <th className="px-4 py-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
+                  {users.map((u) => (
+                    <tr key={u._id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
+                      <td className="px-4 py-3">
+                        <div className="font-bold text-slate-900 dark:text-white">{u.name}</div>
+                        <div className="text-[11px] text-slate-400">{u.email}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                            u.role === 'placement_officer'
+                              ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300'
+                              : u.role === 'class_incharge'
+                              ? 'bg-cyan-100 text-cyan-700 dark:bg-cyan-950/60 dark:text-cyan-300'
+                              : u.role === 'faculty'
+                              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
+                              : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
                           }`}
                         >
-                          {u.isActive ? 'Suspend' : 'Activate'}
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                          {u.role.replace('_', ' ')}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
+                        {u.role === 'placement_officer' ? (
+                          <span className="text-brand-600 dark:text-brand-400 font-semibold">Campus-Wide</span>
+                        ) : (
+                          u.departmentId?.code || 'N/A'
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex items-center space-x-1 text-[10px] font-bold ${
+                            u.isActive
+                              ? 'text-emerald-600 dark:text-emerald-400'
+                              : 'text-red-500 dark:text-red-400'
+                          }`}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full ${u.isActive ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                          <span>{u.isActive ? 'Active' : 'Suspended'}</span>
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-[11px] text-slate-400">
+                        {u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString() : 'Never'}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        {u.role !== 'placement_officer' && (
+                          <button
+                            type="button"
+                            onClick={() => handleToggleUserStatus(u._id, u.isActive)}
+                            className={`px-2.5 py-1 text-[10px] font-bold rounded-lg border transition-all ${
+                              u.isActive
+                                ? 'border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/60 dark:text-red-400'
+                                : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50 dark:border-emerald-900/60 dark:text-emerald-400'
+                            }`}
+                          >
+                            {u.isActive ? 'Suspend' : 'Activate'}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
@@ -852,62 +866,68 @@ export const AdminPanelPage: React.FC = () => {
       {/* TAB 4: DEPARTMENT & MATRIX OVERVIEW */}
       {activeTab === 'departments' && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4">
+            <div className="p-4 sm:p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs">
               <div className="text-xs font-bold text-slate-500 dark:text-slate-400">Total Departments</div>
-              <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">
+              <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1">
                 {totals.totalDepartments || 5}
               </div>
             </div>
-            <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+            <div className="p-4 sm:p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs">
               <div className="text-xs font-bold text-slate-500 dark:text-slate-400">Active Programs</div>
-              <div className="text-2xl font-black text-brand-600 dark:text-brand-400 mt-1">
+              <div className="text-xl sm:text-2xl font-black text-brand-600 dark:text-brand-400 mt-1">
                 {totals.totalPrograms || 0}
               </div>
             </div>
-            <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+            <div className="p-4 sm:p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs">
               <div className="text-xs font-bold text-slate-500 dark:text-slate-400">Total Enrolled Slots</div>
-              <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
+              <div className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
                 {totals.totalEnrollments || 0}
               </div>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 uppercase text-[10px] font-bold border-b border-slate-200 dark:border-slate-800">
-                <tr>
-                  <th className="px-5 py-3">Code</th>
-                  <th className="px-5 py-3">Department Name</th>
-                  <th className="px-5 py-3 text-center">Class Sections</th>
-                  <th className="px-5 py-3 text-center">Active Students</th>
-                  <th className="px-5 py-3 text-center">Assigned Programs</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
-                {deptStats.map((d) => (
-                  <tr key={d.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
-                    <td className="px-5 py-3.5 font-mono font-bold text-brand-600 dark:text-brand-400">
-                      {d.code}
-                    </td>
-                    <td className="px-5 py-3.5 font-bold text-slate-900 dark:text-white">
-                      {d.name}
-                    </td>
-                    <td className="px-5 py-3.5 text-center text-slate-600 dark:text-slate-300">
-                      {d.sectionCount}
-                    </td>
-                    <td className="px-5 py-3.5 text-center font-bold text-slate-900 dark:text-white">
-                      {d.studentCount}
-                    </td>
-                    <td className="px-5 py-3.5 text-center">
-                      <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300">
-                        {d.programsCount}
-                      </span>
-                    </td>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
+            <div className="sm:hidden px-3.5 py-1.5 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800 text-[10px] text-slate-400 flex items-center justify-between">
+              <span>Swipe horizontally to view all department metrics</span>
+              <span className="font-mono text-slate-400">⇄</span>
+            </div>
+            <div className="w-full overflow-x-auto">
+              <table className="w-full text-left text-xs min-w-[540px]">
+                <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 uppercase text-[10px] font-bold border-b border-slate-200 dark:border-slate-800">
+                  <tr>
+                    <th className="px-4 sm:px-5 py-3">Code</th>
+                    <th className="px-4 sm:px-5 py-3">Department Name</th>
+                    <th className="px-4 sm:px-5 py-3 text-center">Class Sections</th>
+                    <th className="px-4 sm:px-5 py-3 text-center">Active Students</th>
+                    <th className="px-4 sm:px-5 py-3 text-center">Assigned Programs</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
+                  {deptStats.map((d) => (
+                    <tr key={d.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
+                      <td className="px-4 sm:px-5 py-3.5 font-mono font-bold text-brand-600 dark:text-brand-400">
+                        {d.code}
+                      </td>
+                      <td className="px-4 sm:px-5 py-3.5 font-bold text-slate-900 dark:text-white">
+                        {d.name}
+                      </td>
+                      <td className="px-4 sm:px-5 py-3.5 text-center text-slate-600 dark:text-slate-300">
+                        {d.sectionCount}
+                      </td>
+                      <td className="px-4 sm:px-5 py-3.5 text-center font-bold text-slate-900 dark:text-white">
+                        {d.studentCount}
+                      </td>
+                      <td className="px-4 sm:px-5 py-3.5 text-center">
+                        <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300">
+                          {d.programsCount}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
