@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   User,
   Shield,
@@ -35,6 +35,13 @@ export const ProfilePage: React.FC = () => {
   const [designation, setDesignation] = useState(user?.designation || '');
   const [officeCabin, setOfficeCabin] = useState(user?.officeCabin || '');
   const [bio, setBio] = useState(user?.bio || '');
+  const [departments, setDepartments] = useState<any[]>([]);
+  const [departmentId, setDepartmentId] = useState<string>(
+    user?.departmentId && typeof user.departmentId === 'object'
+      ? (user.departmentId as any)._id
+      : user?.departmentId || ''
+  );
+  const [isLoadingDepts, setIsLoadingDepts] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [profileSuccessMsg, setProfileSuccessMsg] = useState('');
   const [profileErrorMsg, setProfileErrorMsg] = useState('');
@@ -49,15 +56,47 @@ export const ProfilePage: React.FC = () => {
   const [passwordSuccessMsg, setPasswordSuccessMsg] = useState('');
   const [passwordErrorMsg, setPasswordErrorMsg] = useState('');
 
-  const deptCode =
-    user?.departmentId && typeof user.departmentId === 'object'
-      ? (user.departmentId as any).code
-      : null;
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      setIsLoadingDepts(true);
+      try {
+        const res = await api.get('/academics/departments');
+        if (res.data.success) {
+          setDepartments(res.data.data);
+        }
+      } catch (err) {
+        console.error('Failed to load departments', err);
+      } finally {
+        setIsLoadingDepts(false);
+      }
+    };
+    fetchDepartments();
+  }, []);
 
-  const deptName =
+  useEffect(() => {
+    if (user) {
+      setName(user.name || '');
+      setPhone(user.phone || '');
+      setDesignation(user.designation || '');
+      setOfficeCabin(user.officeCabin || '');
+      setBio(user.bio || '');
+      const currentDeptId =
+        user.departmentId && typeof user.departmentId === 'object'
+          ? (user.departmentId as any)._id
+          : user.departmentId || '';
+      setDepartmentId(currentDeptId);
+    }
+  }, [user]);
+
+  const selectedDept = departments.find((d) => d._id === departmentId);
+
+  const currentDeptObj =
     user?.departmentId && typeof user.departmentId === 'object'
-      ? (user.departmentId as any).name
-      : null;
+      ? (user.departmentId as any)
+      : departments.find((d) => d._id === user?.departmentId);
+
+  const deptCode = currentDeptObj?.code || selectedDept?.code || null;
+  const deptName = currentDeptObj?.name || selectedDept?.name || null;
 
   const assignedSectionName =
     user?.assignedSectionId && typeof user.assignedSectionId === 'object'
@@ -89,6 +128,12 @@ export const ProfilePage: React.FC = () => {
       roleDesc: `Direct classroom mentor for Section ${assignedSectionName}. Responsible for student participation, daily attendance rosters, and student comparison.`,
       icon: Users,
     },
+    student: {
+      label: 'Student Trainee',
+      badgeColor: 'bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20',
+      roleDesc: 'Placement candidate participating in skill tracks, corporate assessments, and progress milestones.',
+      icon: GraduationCap,
+    },
   };
 
   const currentRoleMeta = role ? roleMeta[role] : null;
@@ -111,6 +156,7 @@ export const ProfilePage: React.FC = () => {
         designation,
         officeCabin,
         bio,
+        departmentId: departmentId || null,
       });
 
       if (res.data.success) {
@@ -388,8 +434,35 @@ export const ProfilePage: React.FC = () => {
                 />
               </div>
 
+              {/* Academic Department */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center justify-between">
+                  <span>Academic Department</span>
+                  {selectedDept && (
+                    <span className="text-[10px] font-semibold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/60 px-1.5 py-0.5 rounded">
+                      {selectedDept.code}
+                    </span>
+                  )}
+                </label>
+                <div className="relative">
+                  <select
+                    value={departmentId}
+                    onChange={(e) => setDepartmentId(e.target.value)}
+                    disabled={isLoadingDepts}
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium disabled:opacity-60"
+                  >
+                    <option value="">-- No Department Assigned --</option>
+                    {departments.map((dept) => (
+                      <option key={dept._id} value={dept._id}>
+                        {dept.name} ({dept.code})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
               {/* Office / Cabin Location */}
-              <div className="sm:col-span-2">
+              <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Office / Cabin Location
                 </label>
@@ -449,7 +522,7 @@ export const ProfilePage: React.FC = () => {
                     <span>Placement Officer / Cell Director</span>
                   </div>
                   <p className="text-xs text-emerald-900 dark:text-emerald-200 leading-relaxed">
-                    You hold <strong>Institutional Placement Director</strong> authority. Your account has system-wide permissions across all academic departments (CSE, ECE, EEE, MECH, CIVIL), all 4 academic years, recruitment training tracks, and administrative security keys.
+                    You hold <strong>Institutional Placement Director</strong> authority. Your account has system-wide permissions across all academic departments (CSE, AIDS, ECE, EEE, MECH, CIVIL, MBA), all academic years, recruitment training tracks, and administrative security keys.
                   </p>
                 </div>
 
@@ -457,7 +530,7 @@ export const ProfilePage: React.FC = () => {
                   <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p className="text-slate-400 font-medium">Domain Authority</p>
                     <p className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">Institution-Wide</p>
-                    <p className="text-[11px] text-slate-500 mt-1">All 5 Engineering Departments</p>
+                    <p className="text-[11px] text-slate-500 mt-1">All Academic & Management Departments</p>
                   </div>
                   <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p className="text-slate-400 font-medium">Curriculum Governance</p>
@@ -481,15 +554,15 @@ export const ProfilePage: React.FC = () => {
                     <span>Head of Academic Department</span>
                   </div>
                   <p className="text-xs text-cyan-900 dark:text-cyan-200 leading-relaxed">
-                    You hold <strong>Department Head</strong> authority for <strong>{deptName || 'Computer Science & Engineering'} ({deptCode || 'CSE'})</strong>. All dashboard metrics, class rosters, training programs, attendance absentees, change approvals, and audit records are strictly scoped to your department cohort.
+                    You hold <strong>Department Head</strong> authority for <strong>{deptName || 'Your Department'} ({deptCode || 'N/A'})</strong>. All dashboard metrics, class rosters, training programs, attendance absentees, change approvals, and audit records are strictly scoped to your department cohort.
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                   <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p className="text-slate-400 font-medium">Department Scope</p>
-                    <p className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">{deptCode || 'CSE'}</p>
-                    <p className="text-[11px] text-slate-500 mt-1">{deptName || 'Computer Science & Eng'}</p>
+                    <p className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">{deptCode || 'Assigned'}</p>
+                    <p className="text-[11px] text-slate-500 mt-1">{deptName || 'Department'}</p>
                   </div>
                   <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p className="text-slate-400 font-medium">Faculty Oversight</p>
@@ -545,7 +618,7 @@ export const ProfilePage: React.FC = () => {
                     <span>Class Incharge Mentor</span>
                   </div>
                   <p className="text-xs text-amber-900 dark:text-amber-200 leading-relaxed">
-                    You are assigned as the dedicated Class Incharge for <strong>Section {assignedSectionName}</strong>. You hold direct stewardship over 50 enrolled student trainees, monitoring their daily attendance, readiness scores, and remedial requirements.
+                    You are assigned as the dedicated Class Incharge for <strong>Section {assignedSectionName}</strong>. You hold direct stewardship over enrolled student trainees, monitoring their daily attendance, readiness scores, and remedial requirements.
                   </p>
                 </div>
 
@@ -553,7 +626,7 @@ export const ProfilePage: React.FC = () => {
                   <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p className="text-slate-400 font-medium">Assigned Section</p>
                     <p className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">{assignedSectionName}</p>
-                    <p className="text-[11px] text-slate-500 mt-1">50 Trainee Cohort</p>
+                    <p className="text-[11px] text-slate-500 mt-1">Class Cohort</p>
                   </div>
                   <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p className="text-slate-400 font-medium">Attendance Threshold</p>
@@ -564,6 +637,38 @@ export const ProfilePage: React.FC = () => {
                     <p className="text-slate-400 font-medium">Student Comparison</p>
                     <p className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">Multi-Trainee</p>
                     <p className="text-[11px] text-slate-500 mt-1">Side-by-side metric audits</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {role === 'student' && (
+              <div className="space-y-3">
+                <div className="p-4 bg-violet-50/60 dark:bg-violet-950/30 border border-violet-200 dark:border-violet-800/60 rounded-xl">
+                  <div className="flex items-center space-x-2 text-violet-800 dark:text-violet-300 font-bold text-xs mb-1">
+                    <GraduationCap className="w-4 h-4" />
+                    <span>Student Trainee</span>
+                  </div>
+                  <p className="text-xs text-violet-900 dark:text-violet-200 leading-relaxed">
+                    You are enrolled as a student trainee in <strong>{deptName || 'Assigned Department'} ({deptCode || 'N/A'})</strong>. You have direct access to your personal placement readiness scorecard, skill assessments, attendance verifications, and career milestones.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <p className="text-slate-400 font-medium">Academic Department</p>
+                    <p className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">{deptCode || 'N/A'}</p>
+                    <p className="text-[11px] text-slate-500 mt-1">{deptName || 'Department Cohort'}</p>
+                  </div>
+                  <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <p className="text-slate-400 font-medium">Placement Profile</p>
+                    <p className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">Self-Managed</p>
+                    <p className="text-[11px] text-slate-500 mt-1">Skills, CGPA & Certifications</p>
+                  </div>
+                  <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <p className="text-slate-400 font-medium">Training Progress</p>
+                    <p className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">Individual Journey</p>
+                    <p className="text-[11px] text-slate-500 mt-1">Test Scores & Session Attendance</p>
                   </div>
                 </div>
               </div>

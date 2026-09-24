@@ -65,6 +65,7 @@ export async function runSeed() {
     { code: 'EEE', name: 'Electrical and Electronics Engineering', isActive: true },
     { code: 'MECH', name: 'Mechanical Engineering', isActive: true },
     { code: 'CIVIL', name: 'Civil Engineering', isActive: true },
+    { code: 'MBA', name: 'Master of Business Administration', isActive: true },
   ]);
   const cseDept = depts[0];
   const aidsDept = depts[1];

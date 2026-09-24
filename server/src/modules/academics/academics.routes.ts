@@ -5,10 +5,12 @@ import { ROLES } from '../../config/constants.js';
 
 const router = Router();
 
+// Publicly readable department list (used in registration and profile selection)
+router.get('/departments', AcademicsController.getDepartments);
+
 router.use(authenticate);
 
 router.get('/academic-years', AcademicsController.getAcademicYears);
-router.get('/departments', AcademicsController.getDepartments);
 router.get('/batches', AcademicsController.getBatches);
 router.get('/sections', AcademicsController.getClassSections);
 router.get('/sections/:id', AcademicsController.getSectionById);

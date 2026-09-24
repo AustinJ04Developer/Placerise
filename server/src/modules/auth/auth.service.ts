@@ -1,6 +1,8 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { User, IUser } from '../../models/User.js';
+import { Department } from '../../models/Department.js';
+import { Student } from '../../models/Student.js';
 import { SystemSetting } from '../../models/SystemSetting.js';
 import { ROLES, UserRole } from '../../config/constants.js';
 
@@ -213,6 +215,7 @@ export class AuthService {
       designation?: string;
       officeCabin?: string;
       bio?: string;
+      departmentId?: string | null;
     }
   ) {
     const updateData: any = {};
@@ -221,6 +224,17 @@ export class AuthService {
     if (data.designation !== undefined) updateData.designation = data.designation.trim();
     if (data.officeCabin !== undefined) updateData.officeCabin = data.officeCabin.trim();
     if (data.bio !== undefined) updateData.bio = data.bio.trim();
+    if (data.departmentId !== undefined) {
+      if (data.departmentId && data.departmentId.toString().trim() !== '') {
+        const dept = await Department.findById(data.departmentId);
+        if (!dept) {
+          throw new Error('Selected department not found');
+        }
+        updateData.departmentId = dept._id;
+      } else {
+        updateData.departmentId = null;
+      }
+    }
 
     const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true })
       .populate('departmentId')
@@ -229,6 +243,19 @@ export class AuthService {
 
     if (!updatedUser) {
       throw new Error('User not found');
+    }
+
+    // Keep linked Student record in sync with profile details if applicable
+    if (updatedUser.studentId) {
+      const studentUpdate: any = {};
+      if (updateData.name !== undefined) studentUpdate.name = updateData.name;
+      if (updateData.phone !== undefined) studentUpdate.phone = updateData.phone;
+      if (updateData.departmentId !== undefined && updateData.departmentId !== null) {
+        studentUpdate.departmentId = updateData.departmentId;
+      }
+      if (Object.keys(studentUpdate).length > 0) {
+        await Student.findByIdAndUpdate(updatedUser.studentId, studentUpdate);
+      }
     }
 
     return {

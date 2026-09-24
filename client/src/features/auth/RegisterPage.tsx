@@ -235,10 +235,12 @@ export const RegisterPage: React.FC = () => {
                     ) : (
                       <>
                         <option value="cse">Computer Science & Engineering (CSE)</option>
+                        <option value="aids">Artificial Intelligence & Data Science (AIDS)</option>
                         <option value="ece">Electronics & Communication Engineering (ECE)</option>
                         <option value="eee">Electrical & Electronics Engineering (EEE)</option>
                         <option value="mech">Mechanical Engineering (MECH)</option>
                         <option value="civil">Civil Engineering (CIVIL)</option>
+                        <option value="mba">Master of Business Administration (MBA)</option>
                       </>
                     )}
                   </select>

@@ -133,13 +133,14 @@ export class AuthController {
         return;
       }
 
-      const { name, phone, designation, officeCabin, bio } = req.body;
+      const { name, phone, designation, officeCabin, bio, departmentId } = req.body;
       const updatedUser = await AuthService.updateProfile(req.user._id.toString(), {
         name,
         phone,
         designation,
         officeCabin,
         bio,
+        departmentId,
       });
 
       await recordAuditLog(req, {
@@ -147,7 +148,7 @@ export class AuthController {
         entity: 'User',
         entityId: req.user._id,
         details: `User ${req.user.email} updated self profile details`,
-        newValue: { name, phone, designation, officeCabin, bio },
+        newValue: { name, phone, designation, officeCabin, bio, departmentId },
       });
 
       res.status(200).json({
