@@ -20,12 +20,22 @@ export const ReportsPage: React.FC = () => {
   const handleDownloadClassMatrix = async () => {
     setDownloading('matrix');
     try {
-      const params: any = { yearOfStudy: 4 };
-      if (role === 'hod' && userDeptId) params.departmentId = userDeptId;
-      const res = await api.get('/academics/sections', { params });
-      const sec = res.data.data[0];
-      if (sec) {
-        window.location.href = `/api/reports/class/${sec._id}/export`;
+      let secId: string | null = null;
+      if (role === 'class_incharge' && user?.assignedSectionId) {
+        secId = typeof user.assignedSectionId === 'object' ? user.assignedSectionId._id : user.assignedSectionId;
+      }
+      if (!secId) {
+        const isMba = userDeptCode === 'MBA';
+        const params: any = { yearOfStudy: isMba ? 2 : 4 };
+        if (role === 'hod' && userDeptId) params.departmentId = userDeptId;
+        const res = await api.get('/academics/sections', { params });
+        const sec = res.data.data[0];
+        secId = sec?._id || null;
+      }
+      if (secId) {
+        window.location.href = `/api/reports/class/${secId}/export`;
+      } else {
+        alert('No class section available for export. Please ensure an active section is configured.');
       }
     } catch (err) {
       alert('Export failed');

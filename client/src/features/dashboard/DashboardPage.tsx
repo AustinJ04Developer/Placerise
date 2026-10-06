@@ -72,8 +72,34 @@ export const DashboardPage: React.FC = () => {
 
   const totalProgramsInCategories = categoryData.reduce((acc, curr) => acc + (curr.value || 0), 0);
 
+  const assignedSectionName =
+    user?.assignedSectionId && typeof user.assignedSectionId === 'object'
+      ? (user.assignedSectionId as any).displayName
+      : null;
+
   return (
     <div className="space-y-6">
+      {/* Alert Banner for Class Incharge if Class Section is Unassigned */}
+      {role === 'class_incharge' && !assignedSectionName && (
+        <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-amber-900 dark:text-amber-200">
+          <div className="flex items-start space-x-3">
+            <span className="text-xl shrink-0">⚠️</span>
+            <div>
+              <h4 className="text-sm font-bold">Class Section Assignment Required</h4>
+              <p className="text-xs text-amber-800 dark:text-amber-300 mt-0.5">
+                You are logged in as Class Incharge, but you have not selected your assigned class section yet. Please configure your class section in your profile to access your class student roster, training matrix, and attendance statistics.
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/profile"
+            className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-semibold shadow-sm transition-all whitespace-nowrap self-start sm:self-auto"
+          >
+            Select Class in Profile →
+          </Link>
+        </div>
+      )}
+
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-brand-900 via-slate-900 to-slate-950 text-white rounded-2xl p-6 md:p-8 border border-brand-800/30 shadow-lg relative overflow-hidden">
         <div className="relative z-10">
@@ -86,7 +112,7 @@ export const DashboardPage: React.FC = () => {
                 : role === 'placement_officer'
                 ? 'Placement Officer Director Portal'
                 : role === 'class_incharge'
-                ? 'Class Incharge Portal'
+                ? `Class Incharge Portal • ${assignedSectionName || 'Class Unassigned'}`
                 : 'Faculty Portal'}
             </span>
             <span>•</span>

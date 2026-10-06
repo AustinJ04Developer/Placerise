@@ -39,8 +39,12 @@ export const ClassMatrixPage: React.FC = () => {
         });
         if (res.data.success && res.data.data.length > 0) {
           setAvailableSections(res.data.data);
-          const defaultSec = res.data.data[0];
-          setActiveSectionId(defaultSec._id);
+          const userSecId =
+            user?.assignedSectionId && typeof user.assignedSectionId === 'object'
+              ? user.assignedSectionId._id
+              : user?.assignedSectionId;
+          const matched = userSecId ? res.data.data.find((s: any) => s._id === userSecId) : null;
+          setActiveSectionId(matched ? matched._id : res.data.data[0]._id);
         }
       } catch (err) {
         console.error('Failed to load sections', err);
@@ -49,7 +53,7 @@ export const ClassMatrixPage: React.FC = () => {
     fetchSections();
   }, [user]);
 
-  // Fetch matrix for IV CSE A
+  // Fetch matrix for active class section
   useEffect(() => {
     if (!activeSectionId) return;
 
@@ -74,7 +78,7 @@ export const ClassMatrixPage: React.FC = () => {
       <div className="p-16 text-center">
         <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-          Generating 50-student class historical training matrix...
+          Generating class historical training matrix...
         </p>
       </div>
     );

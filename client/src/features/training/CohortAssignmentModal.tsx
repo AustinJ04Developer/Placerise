@@ -64,6 +64,14 @@ export const CohortAssignmentModal: React.FC<CohortAssignmentModalProps> = ({
   // Detect if this program is interdepartment (targets 2+ departments)
   const isInterdepartment = (program.targetDepartmentIds?.length || 0) > 1;
 
+  const isSelectedDeptMba = departments.find((d) => d._id === selectedDeptId)?.code === 'MBA';
+
+  useEffect(() => {
+    if (isSelectedDeptMba && selectedYear !== 'all' && Number(selectedYear) > 2) {
+      setSelectedYear('all');
+    }
+  }, [isSelectedDeptMba, selectedYear]);
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -481,7 +489,7 @@ export const CohortAssignmentModal: React.FC<CohortAssignmentModalProps> = ({
 
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
-                    Current Year of Study
+                    Current Year of Study {isSelectedDeptMba && <span className="text-amber-600 font-bold">(MBA: 2 Yrs)</span>}
                   </label>
                   <select
                     value={selectedYear}
@@ -489,10 +497,14 @@ export const CohortAssignmentModal: React.FC<CohortAssignmentModalProps> = ({
                     className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs"
                   >
                     <option value="all">All / Any Years (Batch-Wide)</option>
-                    <option value={1}>1st Year</option>
-                    <option value={2}>2nd Year</option>
-                    <option value={3}>3rd Year</option>
-                    <option value={4}>4th Year</option>
+                    <option value={1}>1st Year (I{isSelectedDeptMba ? ' MBA' : ''})</option>
+                    <option value={2}>2nd Year (II{isSelectedDeptMba ? ' MBA' : ''})</option>
+                    {!isSelectedDeptMba && (
+                      <>
+                        <option value={3}>3rd Year</option>
+                        <option value={4}>4th Year</option>
+                      </>
+                    )}
                   </select>
                 </div>
 
@@ -508,7 +520,9 @@ export const CohortAssignmentModal: React.FC<CohortAssignmentModalProps> = ({
                     >
                       {sections.map((s) => (
                         <option key={s._id} value={s._id}>
-                          {s.displayName || `Section ${s.section}`}
+                          {sections.length === 1 || isSelectedDeptMba || s.displayName.split(' ').length <= 2
+                            ? s.displayName
+                            : (s.displayName || `Section ${s.section}`)}
                         </option>
                       ))}
                     </select>

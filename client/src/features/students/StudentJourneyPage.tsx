@@ -196,7 +196,7 @@ export const StudentJourneyPage: React.FC = () => {
               </p>
               <div className="flex flex-wrap items-center gap-2 mt-2">
                 <span className="text-xs font-medium px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                  Current: Year {student.currentYearOfStudy}, Section {student.currentSection}
+                  Current: Year {student.currentYearOfStudy}{(student.departmentId as any)?.code === 'MBA' ? ' (MBA)' : `, Section ${student.currentSection}`}
                 </span>
                 <span className="text-xs font-medium px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
                   Department: {(student.departmentId as any)?.name || 'CSE'}
@@ -304,21 +304,25 @@ export const StudentJourneyPage: React.FC = () => {
             </div>
 
             <span className="text-xs text-slate-400 font-mono">
-              Academic Span: 2023–24 to 2026–27
+              Academic Span: {(student.departmentId as any)?.code === 'MBA' ? '2-Year Postgraduate Program' : '2023–24 to 2026–27 (4-Year Progression)'}
             </span>
           </div>
 
-          {/* 4-Year Chronological Journey Accordion */}
+          {/* Chronological Journey Accordion */}
           <div className="space-y-6">
             {journey.map((yearBlock) => {
-              const yearTitle =
-                yearBlock.yearOfStudy === 1
-                  ? 'YEAR 1 (Freshman Foundation)'
-                  : yearBlock.yearOfStudy === 2
-                  ? 'YEAR 2 (Core Programming & Databases)'
-                  : yearBlock.yearOfStudy === 3
-                  ? 'YEAR 3 (Advanced Full Stack & Pre-Placement)'
-                  : 'YEAR 4 (Final Capstone & Placement Drives)';
+              const isMbaStudent = (student.departmentId as any)?.code === 'MBA';
+              const yearTitle = isMbaStudent
+                ? yearBlock.yearOfStudy === 1
+                  ? 'YEAR 1 (I MBA - Core Business Management & Analytics)'
+                  : 'YEAR 2 (II MBA - Advanced Specializations & Corporate Placement)'
+                : yearBlock.yearOfStudy === 1
+                ? 'YEAR 1 (Freshman Foundation)'
+                : yearBlock.yearOfStudy === 2
+                ? 'YEAR 2 (Core Programming & Databases)'
+                : yearBlock.yearOfStudy === 3
+                ? 'YEAR 3 (Advanced Full Stack & Pre-Placement)'
+                : 'YEAR 4 (Final Capstone & Placement Drives)';
 
               const filteredProgs = filterPrograms(yearBlock.programs);
 

@@ -33,7 +33,7 @@ router.post(
 );
 router.post(
   '/sections',
-  requireRoles(ROLES.PLACEMENT_OFFICER),
+  requireRoles(ROLES.PLACEMENT_OFFICER, ROLES.HOD, ROLES.CLASS_INCHARGE),
   AcademicsController.createClassSection
 );
 

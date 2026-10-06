@@ -159,7 +159,7 @@ export const StudentComparePage: React.FC = () => {
                   {item.name}
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Roll: {item.rollNumber} • IV CSE A
+                  Roll: {item.rollNumber} • {item.department ? `${item.department}${item.yearOfStudy ? ` Yr ${item.yearOfStudy}` : ''} Sec ${item.section || 'A'}`.trim() : 'Class Trainee'}
                 </p>
               </div>
 

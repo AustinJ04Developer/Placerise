@@ -1,7 +1,11 @@
+import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { User, IUser } from '../../models/User.js';
 import { Department } from '../../models/Department.js';
+import { AcademicYear } from '../../models/AcademicYear.js';
+import { Batch } from '../../models/Batch.js';
+import { ClassSection } from '../../models/ClassSection.js';
 import { Student } from '../../models/Student.js';
 import { SystemSetting } from '../../models/SystemSetting.js';
 import { ROLES, UserRole } from '../../config/constants.js';
@@ -166,15 +170,71 @@ export class AuthService {
       );
     }
 
+    let assignedSectionId: any = undefined;
+    if (role === ROLES.CLASS_INCHARGE) {
+      if (!deptId) {
+        throw new Error('Academic Department is required for Class Incharge registration.');
+      }
+      if (data.yearOfStudy === undefined || data.yearOfStudy === null || isNaN(Number(data.yearOfStudy))) {
+        throw new Error('Year of Study is a mandatory field for Class Incharge.');
+      }
+      if (!data.section || !data.section.trim()) {
+        throw new Error('Section is a mandatory field for Class Incharge.');
+      }
+
+      const cleanYear = Number(data.yearOfStudy);
+      const deptDoc = await Department.findById(deptId);
+      const isMba = deptDoc?.code === 'MBA';
+      if (isNaN(cleanYear) || cleanYear < 1 || (isMba ? cleanYear > 2 : cleanYear > 4)) {
+        throw new Error(
+          isMba
+            ? 'MBA degree consists of First and Second Year only (Years 1 and 2).'
+            : 'Year of Study must be between 1 and 4.'
+        );
+      }
+      const cleanSec = data.section.trim().toUpperCase();
+
+      let targetSection = await ClassSection.findOne({
+        departmentId: deptId,
+        yearOfStudy: cleanYear,
+        section: cleanSec,
+      });
+
+      if (!targetSection) {
+        const romanYears = ['I', 'II', 'III', 'IV'];
+        const roman = romanYears[cleanYear - 1] || `${cleanYear}`;
+        const displayName = `${roman} ${deptDoc?.code || 'DEPT'} ${cleanSec}`;
+
+        let currYear = (await AcademicYear.findOne({ isCurrent: true })) || (await AcademicYear.findOne().sort({ order: -1 }));
+        let currBatch = (await Batch.findOne({ isActive: true })) || (await Batch.findOne().sort({ endYear: -1 }));
+
+        targetSection = await ClassSection.create({
+          academicYearId: currYear?._id,
+          departmentId: deptId,
+          batchId: currBatch?._id,
+          yearOfStudy: cleanYear,
+          section: cleanSec,
+          displayName,
+        });
+      }
+
+      assignedSectionId = targetSection._id;
+    }
+
     const newUser = await User.create({
       name: data.name,
       email: data.email.toLowerCase(),
       passwordHash,
       role,
       departmentId: deptId,
+      assignedSectionId,
       studentId,
       isActive: true,
     });
+
+    if (assignedSectionId) {
+      await ClassSection.findByIdAndUpdate(assignedSectionId, { facultyInchargeId: newUser._id });
+    }
 
     const { accessToken, refreshToken } = this.generateTokens(newUser);
     newUser.refreshToken = refreshToken;
@@ -216,17 +276,75 @@ export class AuthService {
       officeCabin?: string;
       bio?: string;
       departmentId?: string | null;
+      assignedSectionId?: string | null;
     }
   ) {
+    const existingUser = await User.findById(userId);
+    if (!existingUser) {
+      throw new Error('User not found');
+    }
+
+    if (existingUser.role === ROLES.CLASS_INCHARGE && data.assignedSectionId !== undefined) {
+      if (!data.assignedSectionId || data.assignedSectionId.toString().trim() === '') {
+        throw new Error('Assigned Class Section is a mandatory field for Class Incharge.');
+      }
+    }
+
     const updateData: any = {};
     if (data.name !== undefined) updateData.name = data.name.trim();
     if (data.phone !== undefined) updateData.phone = data.phone.trim();
     if (data.designation !== undefined) updateData.designation = data.designation.trim();
     if (data.officeCabin !== undefined) updateData.officeCabin = data.officeCabin.trim();
     if (data.bio !== undefined) updateData.bio = data.bio.trim();
-    if (data.departmentId !== undefined) {
+    if (data.assignedSectionId !== undefined) {
+      if (data.assignedSectionId && data.assignedSectionId.toString().trim() !== '') {
+        const rawSec = data.assignedSectionId.toString().trim();
+        let section = null;
+        if (mongoose.isValidObjectId(rawSec)) {
+          section = await ClassSection.findById(rawSec);
+        }
+        if (!section) {
+          section = await ClassSection.findOne({
+            $or: [{ displayName: rawSec }, { section: rawSec.toUpperCase() }],
+          });
+        }
+        if (!section) {
+          throw new Error('Selected class section not found');
+        }
+        updateData.assignedSectionId = section._id;
+        // Synchronize department to match the assigned class section
+        if (section.departmentId) {
+          updateData.departmentId = section.departmentId;
+        }
+        await ClassSection.updateMany(
+          { facultyInchargeId: userId, _id: { $ne: section._id } },
+          { $unset: { facultyInchargeId: 1 } }
+        );
+        await ClassSection.findByIdAndUpdate(section._id, { facultyInchargeId: userId });
+      } else {
+        updateData.assignedSectionId = null;
+        await ClassSection.updateMany(
+          { facultyInchargeId: userId },
+          { $unset: { facultyInchargeId: 1 } }
+        );
+      }
+    }
+
+    if (data.departmentId !== undefined && !updateData.departmentId) {
       if (data.departmentId && data.departmentId.toString().trim() !== '') {
-        const dept = await Department.findById(data.departmentId);
+        const rawDept = data.departmentId.toString().trim();
+        let dept = null;
+        if (mongoose.isValidObjectId(rawDept)) {
+          dept = await Department.findById(rawDept);
+        }
+        if (!dept) {
+          dept = await Department.findOne({
+            $or: [
+              { code: rawDept.toUpperCase() },
+              { name: rawDept },
+            ],
+          });
+        }
         if (!dept) {
           throw new Error('Selected department not found');
         }

@@ -1,5 +1,7 @@
 import { Types } from 'mongoose';
 import { Student } from '../../models/Student.js';
+import { Department } from '../../models/Department.js';
+import { ClassSection } from '../../models/ClassSection.js';
 import { StudentAcademicHistory } from '../../models/StudentAcademicHistory.js';
 import { TrainingEnrollment } from '../../models/TrainingEnrollment.js';
 import { AttendanceRecord } from '../../models/AttendanceRecord.js';
@@ -122,13 +124,15 @@ export class StudentsService {
       .populate('assessmentId')
       .populate('trainingProgramId', 'title code');
 
-    // 5. Structure into 4 years (Year 1, 2, 3, 4)
-    const yearsJourney: Record<number, any> = {
-      1: { yearOfStudy: 1, academicYear: null, classSection: null, programs: [] },
-      2: { yearOfStudy: 2, academicYear: null, classSection: null, programs: [] },
-      3: { yearOfStudy: 3, academicYear: null, classSection: null, programs: [] },
-      4: { yearOfStudy: 4, academicYear: null, classSection: null, programs: [] },
-    };
+    // 5. Structure into years (1st and 2nd year only for MBA, 1 to 4 for other depts)
+    const deptCode = (student.departmentId as any)?.code;
+    const isMba = deptCode === 'MBA';
+    const maxYears = isMba ? 2 : 4;
+
+    const yearsJourney: Record<number, any> = {};
+    for (let yr = 1; yr <= maxYears; yr++) {
+      yearsJourney[yr] = { yearOfStudy: yr, academicYear: null, classSection: null, programs: [] };
+    }
 
     academicHistory.forEach((hist) => {
       const yr = hist.yearOfStudy;
@@ -404,6 +408,23 @@ export class StudentsService {
       throw new Error(`Student with email "${email}" already exists.`);
     }
 
+    const dept = await Department.findById(data.departmentId);
+    const isMba = dept?.code === 'MBA';
+    if (!data.currentYearOfStudy) {
+      throw new Error('Year of Study is a mandatory field.');
+    }
+    const studyYear = Number(data.currentYearOfStudy);
+    if (isNaN(studyYear) || studyYear < 1 || (isMba ? studyYear > 2 : studyYear > 4)) {
+      throw new Error(
+        isMba
+          ? 'MBA program consists of First and Second Year only (Years 1 and 2).'
+          : 'Year of Study must be between 1 and 4.'
+      );
+    }
+    if (!data.currentSection || !data.currentSection.trim()) {
+      throw new Error('Section is a mandatory field.');
+    }
+
     const student = await Student.create({
       registerNumber: regNo,
       rollNumber: data.rollNumber.trim(),
@@ -414,7 +435,7 @@ export class StudentsService {
       departmentId: new Types.ObjectId(data.departmentId),
       batchId: new Types.ObjectId(data.batchId),
       currentClassSectionId: new Types.ObjectId(data.currentClassSectionId),
-      currentYearOfStudy: Number(data.currentYearOfStudy),
+      currentYearOfStudy: studyYear,
       currentSection: data.currentSection.trim().toUpperCase(),
       githubUrl: data.githubUrl?.trim() || undefined,
       linkedinUrl: data.linkedinUrl?.trim() || undefined,
@@ -464,6 +485,23 @@ export class StudentsService {
       currentSection: string;
     }
   ) {
+    if (!targetInfo.currentYearOfStudy) {
+      throw new Error('Year of Study is a mandatory field.');
+    }
+    const targetDept = await Department.findById(targetInfo.departmentId);
+    const isMba = targetDept?.code === 'MBA';
+    const importYear = Number(targetInfo.currentYearOfStudy);
+    if (isNaN(importYear) || importYear < 1 || (isMba ? importYear > 2 : importYear > 4)) {
+      throw new Error(
+        isMba
+          ? 'MBA program consists of First and Second Year only (Years 1 and 2).'
+          : 'Year of Study must be between 1 and 4.'
+      );
+    }
+    if (!targetInfo.currentSection || !targetInfo.currentSection.trim()) {
+      throw new Error('Section is a mandatory field.');
+    }
+
     let importedCount = 0;
     const skippedList: Array<{ registerNumber: string; name: string; reason: string }> = [];
 

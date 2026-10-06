@@ -19,19 +19,22 @@ import {
   CheckCircle2,
   X,
   AlertCircle,
+  AlertTriangle,
   ExternalLink,
   Code2,
   Terminal,
   FileText,
   HelpCircle,
   Check,
+  Plus,
+  Layers,
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { Student, ClassSection, Department, AcademicYear, Batch } from '../../types';
 import { useAuth } from '../../app/context/AuthContext';
 
 export const ClassStudentListPage: React.FC = () => {
-  const { role, user } = useAuth();
+  const { role, user, updateUser } = useAuth();
   const userDeptId =
     user?.departmentId && typeof user.departmentId === 'object'
       ? (user.departmentId as any)._id
@@ -93,7 +96,26 @@ export const ClassStudentListPage: React.FC = () => {
     skippedList: Array<{ registerNumber: string; name: string; reason: string }>;
   } | null>(null);
 
+  // Add Section Modal State (Class Incharge, HOD, Placement Officer)
+  const [showAddSectionModal, setShowAddSectionModal] = useState<boolean>(false);
+  const [newSectionDeptId, setNewSectionDeptId] = useState<string>('');
+  const [newSectionYear, setNewSectionYear] = useState<number>(4);
+  const [newSectionLetter, setNewSectionLetter] = useState<string>('A');
+  const [newSectionCustomName, setNewSectionCustomName] = useState<string>('');
+  const [isCreatingSection, setIsCreatingSection] = useState<boolean>(false);
+  const [createSectionError, setCreateSectionError] = useState<string>('');
+
   const navigate = useNavigate();
+
+  const selectedDept = departments.find((d) => d._id === selectedDeptId);
+  const isSelectedMba = selectedDept?.code === 'MBA';
+
+  // In MBA only 1st and 2nd year exist. Automatically clamp year when MBA is selected
+  useEffect(() => {
+    if (isSelectedMba && selectedStudyYear > 2) {
+      setSelectedStudyYear(1);
+    }
+  }, [isSelectedMba, selectedStudyYear]);
 
   // Load catalogs
   useEffect(() => {
@@ -115,7 +137,23 @@ export const ClassStudentListPage: React.FC = () => {
 
         if (deptsRes.data.success) {
           setDepartments(deptsRes.data.data);
+          const assignedSecObj =
+            user?.assignedSectionId && typeof user.assignedSectionId === 'object'
+              ? user.assignedSectionId
+              : null;
+
           if (role === 'hod' && userDeptId) {
+            setSelectedDeptId(userDeptId);
+          } else if (role === 'class_incharge' && assignedSecObj?.departmentId) {
+            const secDeptId =
+              typeof assignedSecObj.departmentId === 'object'
+                ? assignedSecObj.departmentId._id
+                : assignedSecObj.departmentId;
+            setSelectedDeptId(secDeptId);
+            if (assignedSecObj.yearOfStudy) {
+              setSelectedStudyYear(assignedSecObj.yearOfStudy);
+            }
+          } else if (userDeptId) {
             setSelectedDeptId(userDeptId);
           } else {
             const cse = deptsRes.data.data.find((d: any) => d.code === 'CSE') || deptsRes.data.data[0];
@@ -131,7 +169,7 @@ export const ClassStudentListPage: React.FC = () => {
       }
     };
     fetchCatalogs();
-  }, [role, userDeptId]);
+  }, [role, userDeptId, user?.assignedSectionId]);
 
   // Fetch matching sections
   useEffect(() => {
@@ -149,7 +187,12 @@ export const ClassStudentListPage: React.FC = () => {
         if (res.data.success) {
           setSections(res.data.data);
           if (res.data.data.length > 0) {
-            setSelectedSectionId(res.data.data[0]._id);
+            const userSecId =
+              user?.assignedSectionId && typeof user.assignedSectionId === 'object'
+                ? user.assignedSectionId._id
+                : user?.assignedSectionId;
+            const matched = userSecId ? res.data.data.find((s: any) => s._id === userSecId) : null;
+            setSelectedSectionId(matched ? matched._id : res.data.data[0]._id);
           } else {
             setSelectedSectionId('');
             setStudents([]);
@@ -160,7 +203,7 @@ export const ClassStudentListPage: React.FC = () => {
       }
     };
     fetchSections();
-  }, [selectedYearId, selectedDeptId, selectedStudyYear]);
+  }, [selectedYearId, selectedDeptId, selectedStudyYear, user?.assignedSectionId]);
 
   // Fetch students in selected section
   const fetchStudents = async () => {
@@ -232,9 +275,11 @@ export const ClassStudentListPage: React.FC = () => {
     setAddEmail('');
     setAddGender('Male');
     setAddPhone('');
-    setAddDeptId(role === 'hod' && userDeptId ? userDeptId : (selectedDeptId || (departments[0]?._id ?? '')));
+    const targetDeptId = role === 'hod' && userDeptId ? userDeptId : (selectedDeptId || (departments[0]?._id ?? ''));
+    const isMba = departments.find((d) => d._id === targetDeptId)?.code === 'MBA';
+    setAddDeptId(targetDeptId);
     setAddBatchId(batches[0]?._id ?? '');
-    setAddYear(selectedStudyYear);
+    setAddYear(isMba ? Math.min(selectedStudyYear || 1, 2) : selectedStudyYear);
     setAddSectionId(selectedSectionId || (sections[0]?._id ?? ''));
     setAddGithub('');
     setAddLinkedin('');
@@ -292,9 +337,11 @@ export const ClassStudentListPage: React.FC = () => {
   };
 
   const openImportModal = () => {
-    setImportDeptId(role === 'hod' && userDeptId ? userDeptId : (selectedDeptId || (departments[0]?._id ?? '')));
+    const targetDeptId = role === 'hod' && userDeptId ? userDeptId : (selectedDeptId || (departments[0]?._id ?? ''));
+    const isMba = departments.find((d) => d._id === targetDeptId)?.code === 'MBA';
+    setImportDeptId(targetDeptId);
     setImportBatchId(batches[0]?._id ?? '');
-    setImportYear(selectedStudyYear);
+    setImportYear(isMba ? Math.min(selectedStudyYear || 1, 2) : selectedStudyYear);
     setImportSectionId(selectedSectionId || (sections[0]?._id ?? ''));
     setCsvFileName('');
     setParsedRows([]);
@@ -457,6 +504,75 @@ export const ClassStudentListPage: React.FC = () => {
     }
   };
 
+  const openAddSectionModal = () => {
+    const targetDeptId = selectedDeptId || userDeptId || (departments[0]?._id ?? '');
+    const isMba = departments.find((d) => d._id === targetDeptId)?.code === 'MBA';
+    setNewSectionDeptId(targetDeptId);
+    setNewSectionYear(isMba ? Math.min(selectedStudyYear || 1, 2) : (selectedStudyYear || 4));
+    setNewSectionLetter('A');
+    setNewSectionCustomName('');
+    setCreateSectionError('');
+    setShowAddSectionModal(true);
+  };
+
+  const handleCreateSection = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreateSectionError('');
+
+    if (!newSectionDeptId) {
+      setCreateSectionError('Please select an Academic Department.');
+      return;
+    }
+    const isTargetMba = departments.find((d) => d._id === newSectionDeptId)?.code === 'MBA';
+    if (isTargetMba && Number(newSectionYear) > 2) {
+      setCreateSectionError('MBA consists of First and Second Year only (Years 1 and 2).');
+      return;
+    }
+    if (!newSectionLetter.trim()) {
+      setCreateSectionError('Please enter a section letter or code (e.g. A, B, C).');
+      return;
+    }
+
+    setIsCreatingSection(true);
+    try {
+      const res = await api.post('/academics/sections', {
+        academicYearId: selectedYearId || undefined,
+        departmentId: newSectionDeptId,
+        yearOfStudy: Number(newSectionYear),
+        section: newSectionLetter.trim().toUpperCase(),
+        displayName: newSectionCustomName.trim() || undefined,
+        autoAssignToSelf: role === 'class_incharge',
+      });
+
+      if (res.data.success) {
+        const createdSec = res.data.data;
+        if (newSectionDeptId === selectedDeptId && Number(newSectionYear) === selectedStudyYear) {
+          setSections((prev) => {
+            const exists = prev.some((s) => s._id === createdSec._id);
+            return exists ? prev.map((s) => (s._id === createdSec._id ? createdSec : s)) : [...prev, createdSec];
+          });
+        } else {
+          setSelectedDeptId(newSectionDeptId);
+          setSelectedStudyYear(Number(newSectionYear));
+        }
+        setSelectedSectionId(createdSec._id);
+
+        if (role === 'class_incharge' && updateUser) {
+          updateUser({ assignedSectionId: createdSec, departmentId: createdSec.departmentId });
+        }
+
+        setShowAddSectionModal(false);
+        setNewSectionCustomName('');
+        setAddSuccessMsg(`Class section "${createdSec.displayName}" created successfully!`);
+        setTimeout(() => setAddSuccessMsg(''), 5000);
+      }
+    } catch (err: any) {
+      setCreateSectionError(err.response?.data?.message || err.message || 'Failed to create class section.');
+    } finally {
+      setIsCreatingSection(false);
+    }
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header and Breadcrumb */}
@@ -484,6 +600,14 @@ export const ClassStudentListPage: React.FC = () => {
           <div className="flex flex-wrap items-center gap-2">
             {canManageStudents && (
               <>
+                <button
+                  type="button"
+                  onClick={openAddSectionModal}
+                  className="px-3 py-1.5 sm:px-3.5 sm:py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-semibold flex items-center space-x-1.5 shadow-sm transition-all"
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>Add Section</span>
+                </button>
                 <button
                   type="button"
                   onClick={openAddStudentModal}
@@ -588,34 +712,59 @@ export const ClassStudentListPage: React.FC = () => {
 
         <div>
           <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
-            Year of Study
+            Year of Study {isSelectedMba && <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold">(2-Yr MBA)</span>}
           </label>
           <select
             value={selectedStudyYear}
             onChange={(e) => setSelectedStudyYear(Number(e.target.value))}
             className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
           >
-            <option value={1}>1st Year (I)</option>
-            <option value={2}>2nd Year (II)</option>
-            <option value={3}>3rd Year (III)</option>
-            <option value={4}>4th Year (IV - Final Year)</option>
+            <option value={1}>1st Year (I{isSelectedMba ? ' MBA' : ''})</option>
+            <option value={2}>2nd Year (II{isSelectedMba ? ' MBA - Final Year' : ''})</option>
+            {!isSelectedMba && (
+              <>
+                <option value={3}>3rd Year (III)</option>
+                <option value={4}>4th Year (IV - Final Year)</option>
+              </>
+            )}
           </select>
         </div>
 
         <div>
-          <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
-            Class Section
-          </label>
+          <div className="flex items-center justify-between mb-1">
+            <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              Class Section
+            </label>
+            {sections.length === 1 && (
+              <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                Single Section
+              </span>
+            )}
+            {canManageStudents && (
+              <button
+                type="button"
+                onClick={openAddSectionModal}
+                className="text-[10px] font-bold text-amber-600 hover:text-amber-500 dark:text-amber-400 flex items-center space-x-0.5 hover:underline"
+              >
+                <Plus className="w-3 h-3" />
+                <span>Add</span>
+              </button>
+            )}
+          </div>
           <select
             value={selectedSectionId}
             onChange={(e) => setSelectedSectionId(e.target.value)}
             className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
           >
-            {sections.map((sec) => (
-              <option key={sec._id} value={sec._id}>
-                {sec.displayName} (Section {sec.section})
-              </option>
-            ))}
+            {sections.length === 0 ? (
+              <option value="">No sections found</option>
+            ) : (
+              sections.map((sec) => (
+                <option key={sec._id} value={sec._id}>
+                  {`${sec.displayName} (Section ${sec.section})`}
+                </option>
+              ))
+            )}
           </select>
         </div>
 
@@ -654,12 +803,24 @@ export const ClassStudentListPage: React.FC = () => {
             </button>
             <span className="text-xs text-slate-400">|</span>
             <span className="text-xs text-slate-500 dark:text-slate-400">
-              Showing {students.length} students in IV CSE A
+              Showing {students.length} students in{' '}
+              <strong className="text-slate-700 dark:text-slate-200">
+                {sections.find((s) => s._id === selectedSectionId)?.displayName || 'Class'}
+              </strong>
             </span>
           </div>
 
           <div className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 truncate">
-            Stable Register Number Identity: <span className="font-mono text-brand-600 dark:text-brand-400 font-bold">23CS001 – 23CS050</span>
+            {students.length > 0 ? (
+              <>
+                Register Number Range:{' '}
+                <span className="font-mono text-brand-600 dark:text-brand-400 font-bold">
+                  {students[0]?.registerNumber} – {students[students.length - 1]?.registerNumber}
+                </span>
+              </>
+            ) : (
+              <span>Cohort: {sections.find((s) => s._id === selectedSectionId)?.displayName || 'Class Roster'}</span>
+            )}
           </div>
         </div>
 
@@ -672,7 +833,21 @@ export const ClassStudentListPage: React.FC = () => {
           <div className="p-12 text-center">
             <Users className="w-10 h-10 text-slate-300 dark:text-slate-700 mx-auto mb-2" />
             <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">No students found</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Please select IV CSE A</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              {selectedSectionId
+                ? `No students currently enrolled in ${sections.find((s) => s._id === selectedSectionId)?.displayName || 'this section'}`
+                : 'Please select or create a class section above'}
+            </p>
+            {canManageStudents && (
+              <button
+                type="button"
+                onClick={openAddSectionModal}
+                className="mt-3 inline-flex items-center space-x-1.5 px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-semibold shadow-sm transition-all"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Class Section</span>
+              </button>
+            )}
           </div>
         ) : (
           <>
@@ -703,7 +878,7 @@ export const ClassStudentListPage: React.FC = () => {
                           (typeof student.currentClassSectionId === 'object'
                             ? (student.currentClassSectionId as any)?._id
                             : student.currentClassSectionId)
-                      )?.displayName || `Year ${student.currentYearOfStudy} ${student.currentSection}`;
+                      )?.displayName || (isSelectedMba ? `MBA Year ${student.currentYearOfStudy}` : `Year ${student.currentYearOfStudy} ${student.currentSection}`);
 
                     return (
                       <tr
@@ -838,7 +1013,7 @@ export const ClassStudentListPage: React.FC = () => {
                       (typeof student.currentClassSectionId === 'object'
                         ? (student.currentClassSectionId as any)?._id
                         : student.currentClassSectionId)
-                  )?.displayName || `Year ${student.currentYearOfStudy} ${student.currentSection}`;
+                  )?.displayName || (isSelectedMba ? `MBA Year ${student.currentYearOfStudy}` : `Year ${student.currentYearOfStudy} ${student.currentSection}`);
 
                 return (
                   <div
@@ -997,7 +1172,14 @@ export const ClassStudentListPage: React.FC = () => {
                       <select
                         value={addDeptId}
                         disabled={role === 'hod'}
-                        onChange={(e) => setAddDeptId(e.target.value)}
+                        onChange={(e) => {
+                          const newDeptId = e.target.value;
+                          setAddDeptId(newDeptId);
+                          const isMba = departments.find((d) => d._id === newDeptId)?.code === 'MBA';
+                          if (isMba && addYear > 2) {
+                            setAddYear(1);
+                          }
+                        }}
                         className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white disabled:opacity-60"
                       >
                         {departments.map((d) => (
@@ -1028,19 +1210,30 @@ export const ClassStudentListPage: React.FC = () => {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">
-                        Year of Study *
-                      </label>
-                      <select
-                        value={addYear}
-                        onChange={(e) => setAddYear(Number(e.target.value))}
-                        className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white"
-                      >
-                        <option value={1}>Year 1 (Freshman)</option>
-                        <option value={2}>Year 2 (Sophomore)</option>
-                        <option value={3}>Year 3 (Pre-Final)</option>
-                        <option value={4}>Year 4 (Final Year)</option>
-                      </select>
+                      {(() => {
+                        const isAddMba = departments.find((d) => d._id === addDeptId)?.code === 'MBA';
+                        return (
+                          <>
+                            <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">
+                              Year of Study * {isAddMba && <span className="text-amber-600 dark:text-amber-400 text-[10px]">(MBA: 2 Yrs)</span>}
+                            </label>
+                            <select
+                              value={addYear}
+                              onChange={(e) => setAddYear(Number(e.target.value))}
+                              className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white"
+                            >
+                              <option value={1}>Year 1 (I{isAddMba ? ' MBA' : ' - Freshman'})</option>
+                              <option value={2}>Year 2 (II{isAddMba ? ' MBA - Final Year' : ' - Sophomore'})</option>
+                              {!isAddMba && (
+                                <>
+                                  <option value={3}>Year 3 (Pre-Final)</option>
+                                  <option value={4}>Year 4 (Final Year)</option>
+                                </>
+                              )}
+                            </select>
+                          </>
+                        );
+                      })()}
                     </div>
 
                     <div>
@@ -1054,7 +1247,7 @@ export const ClassStudentListPage: React.FC = () => {
                       >
                         {sections.map((s) => (
                           <option key={s._id} value={s._id}>
-                            {s.displayName} (Section {s.section})
+                            {`${s.displayName} (Section ${s.section})`}
                           </option>
                         ))}
                       </select>
@@ -1324,7 +1517,14 @@ export const ClassStudentListPage: React.FC = () => {
                     <select
                       value={importDeptId}
                       disabled={role === 'hod'}
-                      onChange={(e) => setImportDeptId(e.target.value)}
+                      onChange={(e) => {
+                        const newDeptId = e.target.value;
+                        setImportDeptId(newDeptId);
+                        const isMba = departments.find((d) => d._id === newDeptId)?.code === 'MBA';
+                        if (isMba && importYear > 2) {
+                          setImportYear(1);
+                        }
+                      }}
                       className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 text-slate-900 dark:text-white disabled:opacity-60"
                     >
                       {departments.map((d) => (
@@ -1353,19 +1553,30 @@ export const ClassStudentListPage: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block font-semibold mb-1 text-slate-600 dark:text-slate-400">
-                      Year
-                    </label>
-                    <select
-                      value={importYear}
-                      onChange={(e) => setImportYear(Number(e.target.value))}
-                      className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 text-slate-900 dark:text-white"
-                    >
-                      <option value={1}>Year 1</option>
-                      <option value={2}>Year 2</option>
-                      <option value={3}>Year 3</option>
-                      <option value={4}>Year 4</option>
-                    </select>
+                    {(() => {
+                      const isImportMba = departments.find((d) => d._id === importDeptId)?.code === 'MBA';
+                      return (
+                        <>
+                          <label className="block font-semibold mb-1 text-slate-600 dark:text-slate-400">
+                            Year {isImportMba && <span className="text-amber-600 font-bold">(MBA)</span>}
+                          </label>
+                          <select
+                            value={importYear}
+                            onChange={(e) => setImportYear(Number(e.target.value))}
+                            className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 text-slate-900 dark:text-white"
+                          >
+                            <option value={1}>Year 1 (I{isImportMba ? ' MBA' : ''})</option>
+                            <option value={2}>Year 2 (II{isImportMba ? ' MBA - Final' : ''})</option>
+                            {!isImportMba && (
+                              <>
+                                <option value={3}>Year 3</option>
+                                <option value={4}>Year 4</option>
+                              </>
+                            )}
+                          </select>
+                        </>
+                      );
+                    })()}
                   </div>
 
                   <div>
@@ -1379,7 +1590,7 @@ export const ClassStudentListPage: React.FC = () => {
                     >
                       {sections.map((s) => (
                         <option key={s._id} value={s._id}>
-                          {s.displayName}
+                          {`${s.displayName} (Section ${s.section})`}
                         </option>
                       ))}
                     </select>
@@ -1547,6 +1758,182 @@ export const ClassStudentListPage: React.FC = () => {
                 )}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Add New Class Section (Privilege for Class Incharge, HOD, Placement Officer) */}
+      {showAddSectionModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center space-x-2 text-slate-900 dark:text-white">
+                <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                  <Layers className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold">Add New Class Section</h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Create a new classroom section for your department & year
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddSectionModal(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {createSectionError && (
+              <div className="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-xl text-xs flex items-center space-x-2">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span>{createSectionError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleCreateSection} className="space-y-4">
+              {/* Department */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Academic Department <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={newSectionDeptId}
+                  onChange={(e) => {
+                    const newId = e.target.value;
+                    setNewSectionDeptId(newId);
+                    const isMba = departments.find((d) => d._id === newId)?.code === 'MBA';
+                    if (isMba && newSectionYear > 2) {
+                      setNewSectionYear(1);
+                    }
+                  }}
+                  disabled={role === 'hod'}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-900 dark:text-white disabled:opacity-75 disabled:cursor-not-allowed"
+                >
+                  {departments
+                    .filter((dept) => (role === 'hod' && userDeptId ? dept._id === userDeptId : true))
+                    .map((dept) => (
+                      <option key={dept._id} value={dept._id}>
+                        {dept.code} - {dept.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
+
+              {/* Year of Study */}
+              <div>
+                {(() => {
+                  const isNewSecMba = departments.find((d) => d._id === newSectionDeptId)?.code === 'MBA';
+                  return (
+                    <>
+                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                        Year of Study {isNewSecMba && <span className="text-amber-600 font-bold">(1st & 2nd Year Only for MBA)</span>}
+                      </label>
+                      <div className={`grid ${isNewSecMba ? 'grid-cols-2' : 'grid-cols-4'} gap-2`}>
+                        {(isNewSecMba
+                          ? [
+                              { y: 1, label: 'I Year (First Year)' },
+                              { y: 2, label: 'II Year (Second Year)' },
+                            ]
+                          : [
+                              { y: 1, label: 'I Year' },
+                              { y: 2, label: 'II Year' },
+                              { y: 3, label: 'III Year' },
+                              { y: 4, label: 'IV Year' },
+                            ]
+                        ).map((item) => (
+                          <button
+                            key={item.y}
+                            type="button"
+                            onClick={() => setNewSectionYear(item.y)}
+                            className={`py-2 text-xs font-bold rounded-xl border transition-all text-center ${
+                              newSectionYear === item.y
+                                ? 'bg-amber-500/15 border-amber-500 text-amber-700 dark:text-amber-300 ring-1 ring-amber-500'
+                                : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                            }`}
+                          >
+                            {item.label}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+
+              {/* Section Letter */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Section Identifier / Letter <span className="text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-4 gap-2 mb-2">
+                  {['A', 'B', 'C', 'D'].map((secChar) => (
+                    <button
+                      key={secChar}
+                      type="button"
+                      onClick={() => setNewSectionLetter(secChar)}
+                      className={`py-2 text-xs font-bold rounded-xl border transition-all text-center ${
+                        newSectionLetter === secChar
+                          ? 'bg-amber-500/15 border-amber-500 text-amber-700 dark:text-amber-300 ring-1 ring-amber-500'
+                          : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      Sec {secChar}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="text"
+                  value={newSectionLetter}
+                  onChange={(e) => setNewSectionLetter(e.target.value.toUpperCase())}
+                  placeholder="Custom section code (e.g. E, AIDS-1, etc.)"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold text-slate-900 dark:text-white uppercase"
+                  required
+                />
+              </div>
+
+              {/* Live Section Name Preview */}
+              <div className="p-3 bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-xl flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-amber-800 dark:text-amber-300">
+                  Calculated Section Name:
+                </span>
+                <span className="font-mono font-extrabold text-xs text-amber-900 dark:text-amber-200 bg-amber-200/60 dark:bg-amber-900/60 px-2 py-0.5 rounded-md">
+                  {(() => {
+                    const dept = departments.find((d) => d._id === newSectionDeptId);
+                    const roman = ['I', 'II', 'III', 'IV'][newSectionYear - 1] || newSectionYear;
+                    const code = dept?.code || 'DEPT';
+                    return `${roman} ${code} ${newSectionLetter || 'A'}`;
+                  })()}
+                </span>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setShowAddSectionModal(false)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreatingSection}
+                  className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-semibold shadow-sm transition-all flex items-center space-x-1.5 disabled:opacity-50"
+                >
+                  {isCreatingSection ? (
+                    <span>Creating...</span>
+                  ) : (
+                    <>
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Create Section</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

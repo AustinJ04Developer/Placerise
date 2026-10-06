@@ -13,11 +13,17 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenMobileMenu }) => {
   const { theme, toggleTheme } = useTheme();
   const { user, role, logout } = useAuth();
 
+  const currentSectionName =
+    user?.assignedSectionId && typeof user.assignedSectionId === 'object'
+      ? (user.assignedSectionId as any).displayName
+      : null;
+
   const roleLabels: Record<string, string> = {
     placement_officer: 'Placement Officer',
     hod: 'Head of Department (HOD)',
     faculty: 'Faculty Trainer',
-    class_incharge: 'Class Incharge (IV CSE A)',
+    class_incharge: currentSectionName ? `Class Incharge (${currentSectionName})` : 'Class Incharge (Unassigned)',
+    student: 'Student Trainee',
   };
 
   return (
@@ -37,9 +43,29 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenMobileMenu }) => {
           <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 whitespace-nowrap">
             2026–27 (Active)
           </span>
-          {user?.assignedSectionId && typeof user.assignedSectionId === 'object' && (user.assignedSectionId as any).displayName ? (
+
+          {role === 'class_incharge' ? (
+            currentSectionName ? (
+              <Link
+                to="/academics/classes"
+                className="text-xs font-medium text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 px-2 py-0.5 rounded-lg hover:bg-amber-100 transition-colors hidden sm:inline-flex items-center space-x-1"
+                title="View your assigned class roster"
+              >
+                <span>Class:</span>
+                <span className="font-bold">{currentSectionName}</span>
+              </Link>
+            ) : (
+              <Link
+                to="/profile"
+                className="text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-100/80 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700 px-2.5 py-0.5 rounded-lg hover:bg-amber-200 dark:hover:bg-amber-800/60 transition-colors inline-flex items-center space-x-1 animate-pulse"
+                title="Click to assign your incharge class in profile"
+              >
+                <span>⚠️ Select Class in Profile</span>
+              </Link>
+            )
+          ) : currentSectionName ? (
             <span className="text-xs text-slate-500 dark:text-slate-400 font-medium hidden sm:inline truncate max-w-[200px] md:max-w-none">
-              Class: {(user.assignedSectionId as any).displayName}
+              Class: {currentSectionName}
             </span>
           ) : (
             <span className="text-xs text-slate-500 dark:text-slate-400 font-medium hidden sm:inline truncate max-w-[200px] md:max-w-none">

@@ -29,8 +29,21 @@ export const RegisterPage: React.FC = () => {
   // Staff specific security passcode
   const [staffAccessKey, setStaffAccessKey] = useState('');
 
+  // Class Incharge mandatory Year of Study and Section
+  const [inchargeYear, setInchargeYear] = useState<number>(4);
+  const [inchargeSection, setInchargeSection] = useState<string>('A');
+
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const selectedDept = departments.find((d) => d._id === departmentId);
+  const isMba = selectedDept?.code === 'MBA';
+
+  useEffect(() => {
+    if (isMba && inchargeYear > 2) {
+      setInchargeYear(1);
+    }
+  }, [isMba, inchargeYear]);
 
   useEffect(() => {
     const fetchDepts = async () => {
@@ -67,6 +80,21 @@ export const RegisterPage: React.FC = () => {
       return;
     }
 
+    if (role === 'class_incharge') {
+      if (!departmentId) {
+        setError('Academic Department is required for Class Incharge.');
+        return;
+      }
+      if (!inchargeYear) {
+        setError('Year of Study is a mandatory field for Class Incharge.');
+        return;
+      }
+      if (!inchargeSection.trim()) {
+        setError('Section is a mandatory field for Class Incharge.');
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     try {
       await register({
@@ -76,6 +104,8 @@ export const RegisterPage: React.FC = () => {
         role,
         staffAccessKey: staffAccessKey.trim(),
         departmentId: role === 'placement_officer' ? undefined : (departmentId || undefined),
+        yearOfStudy: role === 'class_incharge' ? inchargeYear : undefined,
+        section: role === 'class_incharge' ? inchargeSection.trim().toUpperCase() : undefined,
       });
       navigate('/');
     } catch (err: any) {
@@ -215,36 +245,129 @@ export const RegisterPage: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Academic Department
-                </label>
-                <div className="relative">
-                  <Building className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <select
-                    value={departmentId}
-                    onChange={(e) => setDepartmentId(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
-                  >
-                    {departments.length > 0 ? (
-                      departments.map((d) => (
-                        <option key={d._id} value={d._id}>
-                          {d.name} ({d.code})
-                        </option>
-                      ))
-                    ) : (
-                      <>
-                        <option value="cse">Computer Science & Engineering (CSE)</option>
-                        <option value="aids">Artificial Intelligence & Data Science (AIDS)</option>
-                        <option value="ece">Electronics & Communication Engineering (ECE)</option>
-                        <option value="eee">Electrical & Electronics Engineering (EEE)</option>
-                        <option value="mech">Mechanical Engineering (MECH)</option>
-                        <option value="civil">Civil Engineering (CIVIL)</option>
-                        <option value="mba">Master of Business Administration (MBA)</option>
-                      </>
-                    )}
-                  </select>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                    Academic Department <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Building className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <select
+                      value={departmentId}
+                      onChange={(e) => setDepartmentId(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
+                    >
+                      {departments.length > 0 ? (
+                        departments.map((d) => (
+                          <option key={d._id} value={d._id}>
+                            {d.name} ({d.code})
+                          </option>
+                        ))
+                      ) : (
+                        <>
+                          <option value="CSE">Computer Science & Engineering (CSE)</option>
+                          <option value="AIDS">Artificial Intelligence & Data Science (AIDS)</option>
+                          <option value="ECE">Electronics & Communication Engineering (ECE)</option>
+                          <option value="EEE">Electrical & Electronics Engineering (EEE)</option>
+                          <option value="MECH">Mechanical Engineering (MECH)</option>
+                          <option value="CIVIL">Civil Engineering (CIVIL)</option>
+                          <option value="MBA">Master of Business Administration (MBA)</option>
+                        </>
+                      )}
+                    </select>
+                  </div>
                 </div>
+
+                {role === 'class_incharge' && (
+                  <div className="p-3.5 bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/30 rounded-xl space-y-3">
+                    {/* Mandatory Year of Study */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                          Year of Study <span className="text-red-500">* (Mandatory)</span>
+                        </label>
+                        {isMba && (
+                          <span className="text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950 px-2 py-0.5 rounded">
+                            2-Year Postgraduate Program
+                          </span>
+                        )}
+                      </div>
+                      <div className={`grid ${isMba ? 'grid-cols-2' : 'grid-cols-4'} gap-2`}>
+                        {(isMba
+                          ? [
+                              { y: 1, label: 'I MBA (Year 1)' },
+                              { y: 2, label: 'II MBA (Year 2)' },
+                            ]
+                          : [
+                              { y: 1, label: 'I Year' },
+                              { y: 2, label: 'II Year' },
+                              { y: 3, label: 'III Year' },
+                              { y: 4, label: 'IV Year' },
+                            ]
+                        ).map((item) => (
+                          <button
+                            key={item.y}
+                            type="button"
+                            onClick={() => setInchargeYear(item.y)}
+                            className={`py-2 text-xs font-bold rounded-xl border transition-all text-center ${
+                              inchargeYear === item.y
+                                ? 'bg-amber-500/15 border-amber-500 text-amber-700 dark:text-amber-300 ring-1 ring-amber-500'
+                                : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                            }`}
+                          >
+                            {item.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Mandatory Section */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">
+                        Section Identifier <span className="text-red-500">* (Mandatory)</span>
+                      </label>
+                      <div className="grid grid-cols-4 gap-2 mb-2">
+                        {['A', 'B', 'C', 'D'].map((secChar) => (
+                          <button
+                            key={secChar}
+                            type="button"
+                            onClick={() => setInchargeSection(secChar)}
+                            className={`py-1.5 text-xs font-bold rounded-lg border transition-all text-center ${
+                              inchargeSection === secChar
+                                ? 'bg-amber-500/15 border-amber-500 text-amber-700 dark:text-amber-300 ring-1 ring-amber-500'
+                                : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                            }`}
+                          >
+                            Sec {secChar}
+                          </button>
+                        ))}
+                      </div>
+                      <input
+                        type="text"
+                        required
+                        value={inchargeSection}
+                        onChange={(e) => setInchargeSection(e.target.value.toUpperCase())}
+                        placeholder="e.g. A"
+                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold text-slate-900 dark:text-white uppercase focus:ring-2 focus:ring-brand-500"
+                      />
+                    </div>
+
+                    {/* Display Name Preview */}
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-amber-500/10 text-xs">
+                      <span className="font-semibold text-amber-800 dark:text-amber-300 text-[11px]">
+                        Assigned Class Cohort:
+                      </span>
+                      <span className="font-mono font-bold text-amber-900 dark:text-amber-100">
+                        {(() => {
+                          const roman = ['I', 'II', 'III', 'IV'][inchargeYear - 1] || `${inchargeYear}`;
+                          const code = selectedDept?.code || 'DEPT';
+                          const sec = inchargeSection.trim().toUpperCase() || 'A';
+                          return `${roman} ${code} ${sec}`;
+                        })()}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

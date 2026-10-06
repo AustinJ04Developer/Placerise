@@ -39,14 +39,14 @@ async function addMbaDepartment() {
     const batch = (await Batch.findOne({ isActive: true })) || (await Batch.findOne().sort({ endYear: -1 }));
 
     if (currentYear && batch) {
-      // 3. Upsert Class Section for I MBA A
-      const existingSec = await ClassSection.findOne({
+      // 3. Upsert Class Section for I MBA and II MBA (Only 1st and 2nd Year, no separate section code)
+      let sec1 = await ClassSection.findOne({
         departmentId: mbaDept._id,
-        displayName: 'I MBA A',
+        yearOfStudy: 1,
       });
 
-      if (!existingSec) {
-        await ClassSection.create({
+      if (!sec1) {
+        sec1 = await ClassSection.create({
           academicYearId: currentYear._id,
           departmentId: mbaDept._id,
           batchId: batch._id,
@@ -55,6 +55,42 @@ async function addMbaDepartment() {
           displayName: 'I MBA A',
         });
         console.log('[Migration] Created Class Section: I MBA A.');
+      } else {
+        sec1.section = 'A';
+        sec1.displayName = 'I MBA A';
+        await sec1.save();
+        console.log('[Migration] Updated Class Section 1 to: I MBA A.');
+      }
+
+      let sec2 = await ClassSection.findOne({
+        departmentId: mbaDept._id,
+        yearOfStudy: 2,
+      });
+
+      if (!sec2) {
+        sec2 = await ClassSection.create({
+          academicYearId: currentYear._id,
+          departmentId: mbaDept._id,
+          batchId: batch._id,
+          yearOfStudy: 2,
+          section: 'A',
+          displayName: 'II MBA A',
+        });
+        console.log('[Migration] Created Class Section: II MBA A.');
+      } else {
+        sec2.section = 'A';
+        sec2.displayName = 'II MBA A';
+        await sec2.save();
+        console.log('[Migration] Updated Class Section 2 to: II MBA A.');
+      }
+
+      // Ensure no MBA sections exist beyond 2nd year
+      const removed = await ClassSection.deleteMany({
+        departmentId: mbaDept._id,
+        yearOfStudy: { $gt: 2 },
+      });
+      if (removed.deletedCount > 0) {
+        console.log(`[Migration] Removed ${removed.deletedCount} invalid MBA section(s) > Year 2.`);
       }
     }
 

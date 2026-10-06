@@ -109,6 +109,13 @@ export async function runSeed() {
     { academicYearId: ay4._id, departmentId: aidsDept._id, batchId: batch._id, yearOfStudy: 4, section: 'A', displayName: 'IV AIDS A' },
     { academicYearId: ay4._id, departmentId: depts[2]._id, batchId: batch._id, yearOfStudy: 4, section: 'A', displayName: 'IV ECE A' },
   ]);
+  const mbaDept = depts.find((d) => d.code === 'MBA');
+  if (mbaDept) {
+    await ClassSection.create([
+      { academicYearId: ay4._id, departmentId: mbaDept._id, batchId: batch._id, yearOfStudy: 1, section: 'A', displayName: 'I MBA A' },
+      { academicYearId: ay4._id, departmentId: mbaDept._id, batchId: batch._id, yearOfStudy: 2, section: 'A', displayName: 'II MBA A' },
+    ]);
+  }
   const [secY1, secY2, secY3, secY4] = sections;
 
   console.log('[Seed] Creating Training Categories...');
